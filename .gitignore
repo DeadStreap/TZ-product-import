@@ -1,0 +1,33 @@
+# Environment & secrets
+.env
+.env.local
+.env.production
+
+# Backend - PHP
+vendor/
+composer.phar
+.phpunit.result.cache
+.php-cs-fixer.cache
+phpstan.neon.baseline
+data/
+uploads/
+*.db
+*.sqlite
+
+# Frontend - Angular/Node
+node_modules/
+dist/
+.angular/
+coverage/
+
+# Docker
+docker-compose.override.yml
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
