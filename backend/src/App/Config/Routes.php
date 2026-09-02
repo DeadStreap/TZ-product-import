@@ -14,11 +14,11 @@ class Routes
 {
     public static function register(App $app): void
     {
-        $app->get('/health', HealthController::class . ':check');
+        $app->get('/api/health', HealthController::class . ':check');
 
-        $app->post('/auth/login', AuthController::class . ':login');
+        $app->post('/api/auth/login', AuthController::class . ':login');
 
-        $app->group('', function ($group) {
+        $app->group('/api', function ($group) {
             $group->post('/import', ImportController::class . ':import');
             $group->get('/import/{id:[0-9]+}/status', ImportController::class . ':status');
 

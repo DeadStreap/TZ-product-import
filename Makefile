@@ -16,7 +16,7 @@ restart:
 	docker compose restart app messenger
 
 migrate:
-	docker compose exec app php bin/console doctrine:migrations:migrate --no-interaction
+	docker compose exec app php bin/console migrate
 
 seed:
 	docker compose exec app php bin/console db:fixtures:load

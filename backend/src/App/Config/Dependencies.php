@@ -68,7 +68,7 @@ class Dependencies
             }),
 
             EntityManager::class => \DI\factory(function (\DI\Container $c) {
-                return EntityManager::create(
+                return new EntityManager(
                     $c->get(\Doctrine\DBAL\Connection::class),
                     $c->get(\Doctrine\ORM\Configuration::class)
                 );

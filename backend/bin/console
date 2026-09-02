@@ -1,0 +1,39 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+require __DIR__ . '/../vendor/autoload.php';
+
+use Dotenv\Dotenv;
+use Doctrine\DBAL\DriverManager;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\ORMSetup;
+use App\Console\MigrateCommand;
+use Symfony\Component\Console\Application;
+
+$dotenv = Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->safeLoad();
+
+$connectionParams = [
+    'driver' => 'pdo_mysql',
+    'dbname' => $_ENV['DB_NAME'] ?? 'product_import',
+    'user' => $_ENV['DB_USER'] ?? 'root',
+    'password' => $_ENV['DB_PASSWORD'] ?? 'secret',
+    'host' => $_ENV['DB_HOST'] ?? '127.0.0.1',
+    'port' => $_ENV['DB_PORT'] ?? '3306',
+    'charset' => 'utf8mb4',
+];
+
+$config = ORMSetup::createAttributeMetadataConfiguration(
+    paths: [dirname(__DIR__) . '/src/App/Entities'],
+    isDevMode: true,
+);
+
+$conn = DriverManager::getConnection($connectionParams);
+$em = new EntityManager($conn, $config);
+
+$app = new Application('Product Import Console');
+$app->addCommands([new MigrateCommand($em)]);
+$app->setDefaultCommand('list', false);
+$app->run();

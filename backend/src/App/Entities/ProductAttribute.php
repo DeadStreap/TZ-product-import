@@ -19,10 +19,10 @@ class ProductAttribute
     #[ORM\JoinColumn(nullable: false)]
     private Product $product;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(name: '`key`', type: 'string', length: 255)]
     private string $key;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(name: '`value`', type: 'text', nullable: true)]
     private ?string $value = null;
 
     public function getId(): int

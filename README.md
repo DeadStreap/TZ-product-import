@@ -7,7 +7,6 @@ A full-stack application for importing products from XLSX files, built with Slim
 - Import products from XLSX files
 - Server-side pagination and filtering
 - JWT authentication
-- Async import processing via RabbitMQ
 - Image downloading and storage
 - Product attributes (key-value pairs)
 - Discount calculation
@@ -15,12 +14,11 @@ A full-stack application for importing products from XLSX files, built with Slim
 ## Tech Stack
 
 ### Backend
-- PHP 8.2+
+- PHP 8.4
 - Slim 4
 - Doctrine ORM
-- Symfony Messenger
-- RabbitMQ
 - MySQL 8.0
+- RabbitMQ
 
 ### Frontend
 - Angular 18
@@ -31,38 +29,35 @@ A full-stack application for importing products from XLSX files, built with Slim
 ## Quick Start
 
 ### Prerequisites
-- Docker & Docker Compose
-- Node.js 20+ (for frontend development)
+- Docker & Docker Compose (Docker Desktop on macOS)
+- Node.js 20 via nvm (Angular 18 is not compatible with Node 25)
 
 ### 1. Clone and setup
 
 ```bash
 cp .env.example .env
-make build
-make up
+make setup
 ```
 
-### 2. Run migrations
+This runs `build` → `up` → `migrate` (creates database tables).
+
+### 2. Frontend development
 
 ```bash
-make migrate
-```
-
-### 3. Frontend development
-
-```bash
+source ~/.nvm/nvm.sh && nvm use 20
 cd frontend
 npm install
 npm start
 ```
 
-### 4. Access the application
+### 3. Access the application
 
-- Frontend: http://localhost
+- Frontend (dev): http://localhost:4200
+- Frontend (nginx): http://localhost (after `npm run build`)
 - Backend API: http://localhost/api/health
 - RabbitMQ UI: http://localhost:15672 (guest/guest)
 
-### 5. Login
+### 4. Login
 
 - Email: admin@example.com
 - Password: password
@@ -98,12 +93,23 @@ npm test           # Run unit tests
 npm run lint       # Run linter
 ```
 
+## Shutdown & Restart
+
+```bash
+# Stop all containers
+sudo docker compose down
+
+# Start all containers
+sudo docker compose up -d
+```
+
 ## Project Structure
 
 ```
 product-import/
 ├── backend/                 # Slim 4 API
 │   ├── src/App/            # Application code
+│   ├── bin/                # Console commands
 │   ├── docker/             # Docker configuration
 │   └── tests/              # PHPUnit tests
 ├── frontend/               # Angular 18
