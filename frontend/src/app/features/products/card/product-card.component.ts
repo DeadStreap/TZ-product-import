@@ -61,7 +61,7 @@ import { selectSelectedProduct, selectProductsLoading } from '../store/products.
                          [alt]="product.name"
                          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                          loading="lazy"
-                         (error)="onImageError($event)" />
+                         (error)="onImageError($event, image.url)" />
                   </div>
                 }
               </div>
@@ -134,8 +134,12 @@ export class ProductCardComponent implements OnInit {
     }
   }
 
-  onImageError(event: Event): void {
+  onImageError(event: Event, fallbackUrl?: string): void {
     const img = event.target as HTMLImageElement;
-    img.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9IiNmM2Y0ZjYiLz48dGV4dCB4PSI1MCIgeT0iNTAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzlDQTNBRiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
+    if (fallbackUrl && img.src !== fallbackUrl) {
+      img.src = fallbackUrl;
+    } else {
+      img.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9IiNmM2Y0ZjYiLz48dGV4dCB4PSI1MCIgeT0iNTAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzlDQTNBRiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
+    }
   }
 }

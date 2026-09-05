@@ -115,12 +115,10 @@ class ImportService
         $product->calculateDiscount();
 
         $this->productRepo->save($product);
-        $this->em->flush();
 
         if (!$isNew) {
             $this->attributeRepo->deleteByProduct($product->getId());
             $this->imageRepo->deleteByProduct($product->getId());
-            $this->em->flush();
         }
 
         foreach ($headers as $colIndex => $header) {
@@ -168,6 +166,10 @@ class ImportService
                 }
 
                 $localPath = $this->imageDownloadService->download($url);
+
+                if ($localPath === null) {
+                    continue;
+                }
 
                 $image = new ProductImage();
                 $image->setProduct($product);

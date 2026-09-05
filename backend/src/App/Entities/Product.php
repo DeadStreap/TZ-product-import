@@ -50,6 +50,8 @@ class Product
     #[ORM\OneToMany(targetEntity: ProductImage::class, mappedBy: 'product', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $images;
 
+    private int $imagesCount = 0;
+
     public function __construct()
     {
         $this->attributes = new ArrayCollection();
@@ -177,6 +179,11 @@ class Product
         }
     }
 
+    public function setImagesCount(int $count): void
+    {
+        $this->imagesCount = $count;
+    }
+
     public function toArray(): array
     {
         return [
@@ -206,7 +213,7 @@ class Product
             'name' => $this->name,
             'price' => $this->price,
             'discount' => $this->discount,
-            'images_count' => $this->images->count(),
+            'images_count' => $this->imagesCount,
         ];
     }
 }

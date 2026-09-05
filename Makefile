@@ -16,13 +16,22 @@ restart:
 	docker compose restart app messenger
 
 migrate:
-	docker compose exec app php bin/console migrate
+	docker compose exec app php vendor/bin/doctrine-migrations migrations:migrate --no-interaction
+
+schema-create:
+	docker compose exec app php bin/console schema:create
 
 seed:
-	docker compose exec app php bin/console db:fixtures:load
+	docker compose exec app php bin/console db:seed
 
 test:
 	docker compose exec app php vendor/bin/phpunit
+
+test-unit:
+	docker compose exec app php vendor/bin/phpunit --testsuite Unit
+
+test-integration:
+	docker compose exec app php vendor/bin/phpunit --testsuite Integration
 
 lint:
 	docker compose exec app vendor/bin/phpstan analyse
@@ -40,5 +49,5 @@ frontend-dev:
 frontend-build:
 	cd frontend && npx ng build --configuration production
 
-setup: build up migrate
+setup: build up schema-create
 	@echo "Setup complete! Run 'make frontend-dev' in another terminal."

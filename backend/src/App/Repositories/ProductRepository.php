@@ -7,6 +7,7 @@ namespace App\Repositories;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
 use App\Entities\Product;
+use App\Entities\ProductImage;
 use App\DTO\ProductFilter;
 
 class ProductRepository
@@ -56,6 +57,28 @@ class ProductRepository
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
+
+        $ids = array_map(fn (Product $p) => $p->getId(), $products);
+
+        if ($ids !== []) {
+            $counts = $this->em->createQueryBuilder()
+                ->select('IDENTITY(i.product)', 'COUNT(i.id)')
+                ->from(ProductImage::class, 'i')
+                ->where('i.product IN (:ids)')
+                ->setParameter('ids', $ids)
+                ->groupBy('i.product')
+                ->getQuery()
+                ->getArrayResult();
+
+            foreach ($counts as $row) {
+                foreach ($products as $p) {
+                    if ($p->getId() === (int) $row[0]) {
+                        $p->setImagesCount((int) $row[1]);
+                        break;
+                    }
+                }
+            }
+        }
 
         return [
             'items' => $products,

@@ -10,6 +10,8 @@ use Doctrine\ORM\ORMSetup;
 use App\Repositories\ProductRepository;
 use App\Repositories\ProductAttributeRepository;
 use App\Repositories\ProductImageRepository;
+use App\Repositories\ImportTaskRepository;
+use App\Repositories\UserRepository;
 use App\Services\ImportService;
 use App\Services\ImageDownloadService;
 use App\Services\AuthService;
@@ -86,10 +88,27 @@ class Dependencies
                 return new ProductImageRepository($c->get(EntityManager::class));
             }),
 
-            AuthService::class => \DI\factory(function () {
+            ImportTaskRepository::class => \DI\factory(function (\DI\Container $c) {
+                return new ImportTaskRepository($c->get(EntityManager::class));
+            }),
+
+            UserRepository::class => \DI\factory(function (\DI\Container $c) {
+                return new UserRepository($c->get(EntityManager::class));
+            }),
+
+            \App\Controllers\ImportController::class => \DI\factory(function (\DI\Container $c) {
+                return new \App\Controllers\ImportController(
+                    $c->get(EntityManager::class),
+                    $c->get(ImportTaskRepository::class),
+                    $c->get(MessageBusInterface::class),
+                );
+            }),
+
+            AuthService::class => \DI\factory(function (\DI\Container $c) {
                 return new AuthService(
-                    $_ENV['JWT_SECRET'] ?? 'change-this',
-                    (int) ($_ENV['JWT_EXPIRY'] ?? '3600')
+                    $_ENV['JWT_SECRET'] ?? bin2hex(random_bytes(32)),
+                    (int) ($_ENV['JWT_EXPIRY'] ?? '3600'),
+                    $c->get(UserRepository::class),
                 );
             }),
 
@@ -109,7 +128,9 @@ class Dependencies
 
             ImportProductsHandler::class => \DI\factory(function (\DI\Container $c) {
                 return new ImportProductsHandler(
-                    $c->get(ImportService::class)
+                    $c->get(ImportService::class),
+                    $c->get(ImportTaskRepository::class),
+                    $c->get(EntityManager::class),
                 );
             }),
 

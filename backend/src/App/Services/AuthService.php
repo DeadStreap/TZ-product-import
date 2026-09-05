@@ -6,12 +6,14 @@ namespace App\Services;
 
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
+use App\Repositories\UserRepository;
 
 class AuthService
 {
     public function __construct(
         private string $secret,
         private int $expiry,
+        private UserRepository $userRepo,
     ) {
     }
 
@@ -41,10 +43,16 @@ class AuthService
 
     public function login(string $email, string $password): ?string
     {
-        if ($email === 'admin@example.com' && $password === 'password') {
-            return $this->generateToken(1, $email);
+        $user = $this->userRepo->findByEmail($email);
+
+        if ($user === null) {
+            return null;
         }
 
-        return null;
+        if (!password_verify($password, $user->getPasswordHash())) {
+            return null;
+        }
+
+        return $this->generateToken($user->getId(), $user->getEmail());
     }
 }

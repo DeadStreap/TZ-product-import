@@ -6,14 +6,18 @@ namespace App\Controllers;
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use App\Services\ImportService;
+use App\Entities\ImportTask;
+use App\Enums\ImportStatus;
+use App\Repositories\ImportTaskRepository;
 use App\Messages\ImportProductsMessage;
+use Doctrine\ORM\EntityManager;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 class ImportController
 {
     public function __construct(
-        private ImportService $importService,
+        private EntityManager $em,
+        private ImportTaskRepository $taskRepo,
         private MessageBusInterface $messageBus,
     ) {
     }
@@ -45,25 +49,17 @@ class ImportController
         $tempFile = tempnam(sys_get_temp_dir(), 'import_');
         $file->moveTo($tempFile);
 
-        $taskId = rand(1, 999999);
-        $taskDir = sys_get_temp_dir() . '/import_tasks';
+        $task = new ImportTask();
+        $task->setStatus(ImportStatus::Pending);
+        $this->taskRepo->save($task);
+        $this->em->flush();
 
-        if (!is_dir($taskDir)) {
-            mkdir($taskDir, 0755, true);
-        }
-
-        $taskFile = $taskDir . '/task_' . $taskId . '.json';
-        file_put_contents($taskFile, json_encode([
-            'status' => 'pending',
-            'file' => $tempFile,
-        ]));
-
-        $this->messageBus->dispatch(new ImportProductsMessage($taskId, $tempFile));
+        $this->messageBus->dispatch(new ImportProductsMessage($task->getId(), $tempFile));
 
         $response->getBody()->write(json_encode([
-            'task_id' => $taskId,
+            'task_id' => $task->getId(),
             'status' => 'pending',
-            'message' => 'Import started. Check status at /api/import/' . $taskId . '/status',
+            'message' => 'Import started. Check status at /api/import/' . $task->getId() . '/status',
         ]));
 
         return $response
@@ -74,15 +70,13 @@ class ImportController
     public function status(Request $request, Response $response, array $args): Response
     {
         $taskId = (int) $args['id'];
-        $taskFile = sys_get_temp_dir() . '/import_tasks/task_' . $taskId . '.json';
+        $task = $this->taskRepo->find($taskId);
 
-        if (!file_exists($taskFile)) {
+        if ($task === null) {
             return $this->jsonError($response, 'Task not found', 404);
         }
 
-        $data = json_decode(file_get_contents($taskFile), true);
-
-        $response->getBody()->write(json_encode($data));
+        $response->getBody()->write(json_encode($task->toArray()));
 
         return $response
             ->withHeader('Content-Type', 'application/json')

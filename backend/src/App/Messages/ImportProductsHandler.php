@@ -5,33 +5,56 @@ declare(strict_types=1);
 namespace App\Messages;
 
 use App\Services\ImportService;
+use App\Entities\ImportTask;
+use App\Enums\ImportStatus;
+use App\Repositories\ImportTaskRepository;
+use Doctrine\ORM\EntityManager;
 
 class ImportProductsHandler
 {
     public function __construct(
         private ImportService $importService,
+        private ImportTaskRepository $taskRepo,
+        private EntityManager $em,
     ) {
     }
 
     public function __invoke(ImportProductsMessage $message): void
     {
-        $result = $this->importService->processFile($message->getFilePath());
+        $task = $this->taskRepo->find($message->getTaskId());
 
-        $taskFile = $this->getTaskFilePath($message->getTaskId());
-        file_put_contents($taskFile, json_encode([
-            'status' => $result->hasErrors() ? 'completed_with_errors' : 'completed',
-            'result' => $result->toArray(),
-        ]));
-    }
-
-    private function getTaskFilePath(int $taskId): string
-    {
-        $dir = sys_get_temp_dir() . '/import_tasks';
-
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
+        if ($task === null) {
+            return;
         }
 
-        return $dir . '/task_' . $taskId . '.json';
+        $task->setStatus(ImportStatus::Processing);
+        $this->em->flush();
+
+        try {
+            $result = $this->importService->processFile($message->getFilePath());
+
+            if ($result->hasErrors() && $result->getImported() + $result->getUpdated() > 0) {
+                $task->setStatus(ImportStatus::CompletedWithErrors);
+            } elseif ($result->hasErrors()) {
+                $task->setStatus(ImportStatus::Failed);
+            } else {
+                $task->setStatus(ImportStatus::Completed);
+            }
+            $task->setResult(json_encode($result->toArray()));
+        } catch (\Exception $e) {
+            $task->setStatus(ImportStatus::Failed);
+            $task->setResult(json_encode([
+                'total_rows' => 0,
+                'imported' => 0,
+                'updated' => 0,
+                'skipped' => 0,
+                'errors' => [['row' => 0, 'error' => $e->getMessage()]],
+                'errors_count' => 1,
+            ]));
+        } finally {
+            @unlink($message->getFilePath());
+        }
+
+        $this->em->flush();
     }
 }

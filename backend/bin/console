@@ -9,14 +9,16 @@ use Dotenv\Dotenv;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;
-use App\Console\MigrateCommand;
+use App\Console\SchemaCreateCommand;
+use App\Console\SeedCommand;
+use App\Console\ConsumeCommand;
 use Symfony\Component\Console\Application;
 
 $dotenv = Dotenv::createImmutable(dirname(__DIR__));
 $dotenv->safeLoad();
 
 $connectionParams = [
-    'driver' => 'pdo_mysql',
+    'driver' => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
     'dbname' => $_ENV['DB_NAME'] ?? 'product_import',
     'user' => $_ENV['DB_USER'] ?? 'root',
     'password' => $_ENV['DB_PASSWORD'] ?? 'secret',
@@ -27,13 +29,15 @@ $connectionParams = [
 
 $config = ORMSetup::createAttributeMetadataConfiguration(
     paths: [dirname(__DIR__) . '/src/App/Entities'],
-    isDevMode: true,
+    isDevMode: ($_ENV['APP_DEBUG'] ?? 'false') === 'true',
 );
 
 $conn = DriverManager::getConnection($connectionParams);
 $em = new EntityManager($conn, $config);
 
 $app = new Application('Product Import Console');
-$app->addCommands([new MigrateCommand($em)]);
+$app->add(new SchemaCreateCommand($em));
+$app->add(new SeedCommand($em));
+$app->add(new ConsumeCommand($em));
 $app->setDefaultCommand('list', false);
 $app->run();

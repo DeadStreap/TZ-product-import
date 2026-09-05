@@ -1,0 +1,436 @@
+openapi: 3.0.3
+info:
+  title: Product Import API
+  description: |
+    API for importing products from XLSX files, listing, and viewing product details.
+    Built with Slim 4 + Doctrine ORM.
+  version: 1.0.0
+  contact:
+    name: API Support
+
+servers:
+  - url: /api
+    description: API base path
+
+security:
+  - bearerAuth: []
+
+paths:
+  /health:
+    get:
+      tags: [System]
+      summary: Health check
+      description: Returns service status. No authentication required.
+      security: []
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Authenticate user
+      description: Returns a JWT token for valid credentials. No authentication required.
+      security: []
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Missing email or password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /import:
+    post:
+      tags: [Import]
+      summary: Import products from XLSX file
+      description: |
+        Uploads an XLSX file and starts an asynchronous import process.
+        Returns a task ID for polling status.
+        Rate limit: 10 requests per minute.
+      operationId: importProducts
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: XLSX file (max 50MB)
+      responses:
+        '202':
+          description: Import task accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportAccepted'
+        '400':
+          description: Invalid file type or missing file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /import/{id}/status:
+    get:
+      tags: [Import]
+      summary: Get import task status
+      description: Returns the current status and result of an import task.
+      operationId: getImportStatus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Import task ID
+      responses:
+        '200':
+          description: Task status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportTaskStatus'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /products:
+    get:
+      tags: [Products]
+      summary: List products
+      description: |
+        Returns a paginated list of products with optional filtering.
+        Server-side pagination with max 100 items per page.
+      operationId: listProducts
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+          description: Page number
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+          description: Items per page
+        - name: name
+          in: query
+          schema:
+            type: string
+          description: Filter by product name (partial match)
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+            format: float
+          description: Minimum price filter
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+            format: float
+          description: Maximum price filter
+      responses:
+        '200':
+          description: Paginated product list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /products/{id}:
+    get:
+      tags: [Products]
+      summary: Get product details
+      description: Returns full product details including attributes and images.
+      operationId: getProduct
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Product ID
+      responses:
+        '200':
+          description: Product details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from /auth/login
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+          description: Seconds to wait before retrying
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status, timestamp]
+      properties:
+        status:
+          type: string
+          example: ok
+        timestamp:
+          type: string
+          format: date-time
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: admin@example.com
+        password:
+          type: string
+          example: password
+
+    LoginResponse:
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
+          description: JWT access token
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+          description: Error message
+
+    ImportAccepted:
+      type: object
+      required: [task_id, status, message]
+      properties:
+        task_id:
+          type: integer
+          description: Import task ID for status polling
+        status:
+          type: string
+          example: pending
+        message:
+          type: string
+          example: "Import started. Check status at /api/import/{id}/status"
+
+    ImportTaskStatus:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [pending, processing, completed, completed_with_errors, failed]
+        result:
+          oneOf:
+            - $ref: '#/components/schemas/ImportResult'
+            - type: 'null'
+
+    ImportResult:
+      type: object
+      properties:
+        total_rows:
+          type: integer
+        imported:
+          type: integer
+        updated:
+          type: integer
+        skipped:
+          type: integer
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImportError'
+        errors_count:
+          type: integer
+
+    ImportError:
+      type: object
+      required: [row, error]
+      properties:
+        row:
+          type: integer
+          description: Row number in the XLSX file (1-indexed, header=1)
+        error:
+          type: string
+
+    ProductListResponse:
+      type: object
+      required: [items, total, page, limit, total_pages]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductListItem'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        total_pages:
+          type: integer
+
+    ProductListItem:
+      type: object
+      required: [id, external_code, name, price]
+      properties:
+        id:
+          type: integer
+        external_code:
+          type: string
+        name:
+          type: string
+        price:
+          type: number
+          format: float
+        discount:
+          type: number
+          format: float
+          nullable: true
+        images_count:
+          type: integer
+
+    Product:
+      type: object
+      required: [id, external_code, name, price, created_at, updated_at, attributes, images]
+      properties:
+        id:
+          type: integer
+        external_code:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        price:
+          type: number
+          format: float
+        purchase_price:
+          type: number
+          format: float
+          nullable: true
+        discount:
+          type: number
+          format: float
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        attributes:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductAttribute'
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductImage'
+
+    ProductAttribute:
+      type: object
+      required: [id, key]
+      properties:
+        id:
+          type: integer
+        key:
+          type: string
+        value:
+          type: string
+          nullable: true
+
+    ProductImage:
+      type: object
+      required: [id, url]
+      properties:
+        id:
+          type: integer
+        url:
+          type: string
+          format: uri
+        path:
+          type: string
+          nullable: true
+          description: Local file path after download

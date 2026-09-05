@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Observable } from 'rxjs';
+import { Observable, firstValueFrom, take } from 'rxjs';
 import { ProductListItem, ProductFilter } from '@app/shared/models/product.model';
 import * as ProductsActions from '../store/products.actions';
 import {
@@ -11,6 +11,7 @@ import {
   selectProductsLoading,
   selectProductsPage,
   selectProductsTotalPages,
+  selectProductsFilter,
 } from '../store/products.selectors';
 
 @Component({
@@ -138,24 +139,26 @@ import {
         </div>
 
         <!-- Pagination -->
-        @if ((totalPages$ | async) && (totalPages$ | async)! > 1) {
-          <div class="flex items-center justify-between">
-            <button (click)="prevPage()" [disabled]="(page$ | async) === 1"
-                    class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium
-                           text-gray-700 bg-white hover:bg-gray-50
-                           disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-              Previous
-            </button>
-            <span class="text-sm text-gray-700">
-              Page {{ page$ | async }} of {{ totalPages$ | async }}
-            </span>
-            <button (click)="nextPage()" [disabled]="(page$ | async) === (totalPages$ | async)"
-                    class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium
-                           text-gray-700 bg-white hover:bg-gray-50
-                           disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-              Next
-            </button>
-          </div>
+        @if ((totalPages$ | async); as totalPages) {
+          @if (totalPages > 1) {
+            <div class="flex items-center justify-between">
+              <button (click)="prevPage()" [disabled]="(page$ | async) === 1"
+                      class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium
+                             text-gray-700 bg-white hover:bg-gray-50
+                             disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                Previous
+              </button>
+              <span class="text-sm text-gray-700">
+                Page {{ page$ | async }} of {{ totalPages }}
+              </span>
+              <button (click)="nextPage()" [disabled]="(page$ | async) === totalPages"
+                      class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium
+                             text-gray-700 bg-white hover:bg-gray-50
+                             disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                Next
+              </button>
+            </div>
+          }
         }
       }
     </div>
@@ -170,43 +173,64 @@ export class ProductListComponent implements OnInit {
   totalPages$: Observable<number> = this.store.select(selectProductsTotalPages);
 
   filter: ProductFilter = {};
-  private currentPage = 1;
   private readonly limit = 20;
 
-  ngOnInit(): void {
-    this.loadProducts();
+  async ngOnInit(): Promise<void> {
+    this.filter = await firstValueFrom(this.store.select(selectProductsFilter));
+    const page = await firstValueFrom(this.store.select(selectProductsPage));
+    this.loadProducts(page);
   }
 
-  loadProducts(): void {
+  loadProducts(page?: number): void {
+    const p = page ?? 1;
     this.store.dispatch(ProductsActions.loadProducts({
-      page: this.currentPage,
+      page: p,
       limit: this.limit,
-      filter: { ...this.filter },
+      filter: this.filter,
     }));
   }
 
   applyFilter(): void {
-    this.currentPage = 1;
-    this.store.dispatch(ProductsActions.setFilter({ filter: { ...this.filter } }));
-    this.loadProducts();
+    const cleaned: ProductFilter = {};
+    if (this.filter.name) {
+      cleaned.name = this.filter.name;
+    }
+    if (this.filter.minPrice !== null && this.filter.minPrice !== undefined) {
+      cleaned.minPrice = this.filter.minPrice;
+    }
+    if (this.filter.maxPrice !== null && this.filter.maxPrice !== undefined) {
+      cleaned.maxPrice = this.filter.maxPrice;
+    }
+    this.filter = cleaned;
+    this.store.dispatch(ProductsActions.setFilter({ filter: cleaned }));
+    this.loadProducts(1);
   }
 
   clearFilter(): void {
     this.filter = {};
-    this.currentPage = 1;
     this.store.dispatch(ProductsActions.clearFilter());
-    this.loadProducts();
+    this.loadProducts(1);
   }
 
   nextPage(): void {
-    this.currentPage++;
-    this.loadProducts();
+    const page = this.snapshot.page;
+    if (page < this.snapshot.totalPages) {
+      this.loadProducts(page + 1);
+    }
   }
 
   prevPage(): void {
-    if (this.currentPage > 1) {
-      this.currentPage--;
-      this.loadProducts();
+    const page = this.snapshot.page;
+    if (page > 1) {
+      this.loadProducts(page - 1);
     }
+  }
+
+  private get snapshot() {
+    let page = 1;
+    let totalPages = 1;
+    this.store.select(selectProductsPage).pipe(take(1)).subscribe(p => page = p);
+    this.store.select(selectProductsTotalPages).pipe(take(1)).subscribe(t => totalPages = t);
+    return { page, totalPages };
   }
 }

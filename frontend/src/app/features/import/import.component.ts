@@ -1,7 +1,9 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ImportService } from '@app/core/services/import.service';
 import { ImportTaskStatus } from '@app/shared/models/import-result.model';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-import',
@@ -52,6 +54,17 @@ import { ImportTaskStatus } from '@app/shared/models/import-result.model';
               Start Import
             }
           </button>
+        }
+
+        @if (errorMessage()) {
+          <div class="mt-4 rounded-md bg-red-50 p-4">
+            <div class="flex">
+              <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+              </svg>
+              <p class="ml-3 text-sm text-red-700">{{ errorMessage() }}</p>
+            </div>
+          </div>
         }
       </div>
 
@@ -141,6 +154,9 @@ export class ImportComponent {
   selectedFile = signal<File | null>(null);
   uploading = signal(false);
   taskStatus = signal<ImportTaskStatus | null>(null);
+  errorMessage = signal<string | null>(null);
+
+  private destroyRef = inject(DestroyRef);
 
   constructor(private importService: ImportService) {}
 
@@ -156,18 +172,21 @@ export class ImportComponent {
     if (!file) return;
 
     this.uploading.set(true);
+    this.errorMessage.set(null);
 
-    this.importService.importFile(file).subscribe({
-      next: ({ taskId }) => {
-        this.importService.pollStatus(taskId).subscribe(status => {
-          this.taskStatus.set(status);
-          if (status.status !== 'pending' && status.status !== 'processing') {
-            this.uploading.set(false);
-          }
-        });
+    this.importService.importFile(file).pipe(
+      switchMap(({ taskId }) => this.importService.pollStatus(taskId)),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
+      next: (status) => {
+        this.taskStatus.set(status);
+        if (status.status !== 'pending' && status.status !== 'processing') {
+          this.uploading.set(false);
+        }
       },
-      error: () => {
+      error: (err) => {
         this.uploading.set(false);
+        this.errorMessage.set(err?.error?.error || 'Upload failed. Please try again.');
       },
     });
   }
