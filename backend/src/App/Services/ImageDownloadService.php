@@ -10,10 +10,12 @@ class ImageDownloadService
 {
     private Client $client;
     private string $uploadDir;
+    private int $maxFileSize;
 
-    public function __construct(string $uploadDir)
+    public function __construct(string $uploadDir, int $maxFileSize = 10 * 1024 * 1024)
     {
         $this->uploadDir = $uploadDir;
+        $this->maxFileSize = $maxFileSize;
         $this->client = new Client([
             'timeout' => 30,
             'connect_timeout' => 10,
@@ -27,6 +29,13 @@ class ImageDownloadService
             $contentType = $response->getHeaderLine('Content-Type');
 
             if (!str_starts_with($contentType, 'image/')) {
+                return null;
+            }
+
+            $contentLength = $response->getHeaderLine('Content-Length');
+            if ($contentLength !== '' && (int) $contentLength > $this->maxFileSize) {
+                error_log('Image too large (' . $contentLength . ' bytes): ' . $url);
+
                 return null;
             }
 

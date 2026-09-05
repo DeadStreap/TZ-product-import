@@ -34,7 +34,7 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && SQLITE_LIBS="-lsqlite3" docker-php-ext-install pdo_mysql pdo_sqlite intl zip opcache gd \
-    && pecl install redis amqp && docker-php-ext-enable redis amqp \
+    && pecl install amqp && docker-php-ext-enable amqp \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /var/www

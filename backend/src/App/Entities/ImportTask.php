@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 use App\Enums\ImportStatus;
 
 #[ORM\Entity]
+#[ORM\HasLifecycleCallbacks]
 #[ORM\Table(name: 'import_tasks')]
 class ImportTask
 {
@@ -31,6 +32,12 @@ class ImportTask
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    #[ORM\PreUpdate]
+    public function updateTimestamp(): void
+    {
         $this->updatedAt = new \DateTimeImmutable();
     }
 
@@ -71,6 +78,7 @@ class ImportTask
             'status' => $this->status->value,
             'result' => $this->result !== null ? json_decode($this->result, true) : null,
             'created_at' => $this->createdAt->format('c'),
+            'updated_at' => $this->updatedAt->format('c'),
         ];
     }
 }

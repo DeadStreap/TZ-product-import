@@ -2,21 +2,23 @@ import { Component, signal, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ImportService } from '@app/core/services/import.service';
 import { ImportTaskStatus } from '@app/shared/models/import-result.model';
+import { SpinnerComponent } from '@app/shared/spinner.component';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-import',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, SpinnerComponent],
   template: `
     <div class="max-w-2xl mx-auto">
       <h1 class="text-2xl font-bold text-gray-900 mb-6">Import Products</h1>
 
-      <!-- Upload Area -->
       <div class="bg-white shadow rounded-lg p-6 mb-6">
         <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center
-                    hover:border-blue-400 transition-colors">
+                    hover:border-blue-400 focus-within:border-blue-400 transition-colors"
+             role="button" tabindex="0" aria-label="Загрузить XLSX файл"
+             (keydown.enter)="fileInput.click()" (keydown.space)="fileInput.click(); $event.preventDefault()">
           <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
             <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
@@ -45,11 +47,8 @@ import { switchMap } from 'rxjs';
                          focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500
                          disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
             @if (uploading()) {
-              <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-              </svg>
-              Processing...
+              <app-spinner size="sm" />
+              <span class="ml-2">Processing...</span>
             } @else {
               Start Import
             }
@@ -68,7 +67,6 @@ import { switchMap } from 'rxjs';
         }
       </div>
 
-      <!-- Progress -->
       @if (taskStatus()) {
         <div class="bg-white shadow rounded-lg p-6 mb-6">
           <h3 class="text-lg font-medium text-gray-900 mb-4">Import Progress</h3>
@@ -97,7 +95,6 @@ import { switchMap } from 'rxjs';
         </div>
       }
 
-      <!-- Results -->
       @if (taskStatus()?.result) {
         <div class="bg-white shadow rounded-lg p-6">
           <h3 class="text-lg font-medium text-gray-900 mb-4">Results</h3>

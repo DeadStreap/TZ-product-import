@@ -9,6 +9,7 @@ use App\Controllers\AuthController;
 use App\Controllers\ImportController;
 use App\Controllers\ProductController;
 use App\Controllers\HealthController;
+use App\Middleware\RateLimitMiddleware;
 
 class Routes
 {
@@ -19,7 +20,8 @@ class Routes
         $app->post('/api/auth/login', AuthController::class . ':login');
 
         $app->group('/api', function ($group) {
-            $group->post('/import', ImportController::class . ':import');
+            $group->post('/import', ImportController::class . ':import')
+                ->add(RateLimitMiddleware::class);
             $group->get('/import/{id:[0-9]+}/status', ImportController::class . ':status');
 
             $group->get('/products', ProductController::class . ':index');

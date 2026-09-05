@@ -17,7 +17,7 @@ export class ProductsEffects {
         this.api.getProducts(page, limit, filter).pipe(
           map(response => ProductsActions.loadProductsSuccess({ response })),
           catchError(error =>
-            of(ProductsActions.loadProductsFailure({ error: error.message }))
+            of(ProductsActions.loadProductsFailure({ error: error.error?.error || error.message || 'Failed to load products' }))
           )
         )
       )
@@ -31,7 +31,7 @@ export class ProductsEffects {
         this.api.getProduct(id).pipe(
           map(product => ProductsActions.loadProductSuccess({ product })),
           catchError(error =>
-            of(ProductsActions.loadProductFailure({ error: error.message }))
+            of(ProductsActions.loadProductFailure({ error: error.error?.error || error.message || 'Failed to load product' }))
           )
         )
       )

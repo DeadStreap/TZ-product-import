@@ -12,13 +12,13 @@ import { AuthService } from './core/services/auth.service';
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
           <div class="flex items-center space-x-4">
-            <a routerLink="/products" class="text-xl font-bold text-gray-900">Product Import</a>
+            <a routerLink="/products" class="text-xl font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-1 -ml-1">Product Import</a>
             @if (auth.isLoggedIn()) {
-              <a routerLink="/import" routerLinkActive="bg-gray-100" routerLinkActive="text-blue-700"
+              <a routerLink="/import" routerLinkActive="bg-gray-100 text-blue-700"
                  class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">
                 Import
               </a>
-              <a routerLink="/products" routerLinkActive="bg-gray-100" routerLinkActive="text-blue-700"
+              <a routerLink="/products" routerLinkActive="bg-gray-100 text-blue-700"
                  class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">
                 Products
               </a>

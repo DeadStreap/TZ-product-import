@@ -1,10 +1,10 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { Observable, firstValueFrom, take } from 'rxjs';
+import { Observable, firstValueFrom } from 'rxjs';
 import { ProductListItem, ProductFilter } from '@app/shared/models/product.model';
+import { SpinnerComponent } from '@app/shared/spinner.component';
 import * as ProductsActions from '../store/products.actions';
 import {
   selectAllProducts,
@@ -17,10 +17,9 @@ import {
 @Component({
   selector: 'app-product-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, RouterLink, SpinnerComponent],
   template: `
     <div class="space-y-6">
-      <!-- Header -->
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 class="text-2xl font-bold text-gray-900">Products</h1>
         <a routerLink="/import"
@@ -30,40 +29,39 @@ import {
         </a>
       </div>
 
-      <!-- Filters -->
       <div class="bg-white shadow rounded-lg p-4">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
-            <input type="text" [ngModel]="filter.name" (ngModelChange)="filter.name = $event"
+            <label for="filter-name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <input id="filter-name" type="text" #nameInput
                    placeholder="Search by name..."
                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm
                           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
                           text-sm" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Min Price</label>
-            <input type="number" [ngModel]="filter.minPrice" (ngModelChange)="filter.minPrice = $event"
+            <label for="filter-min-price" class="block text-sm font-medium text-gray-700 mb-1">Min Price</label>
+            <input id="filter-min-price" type="number" #minPriceInput
                    placeholder="0"
                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm
                           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
                           text-sm" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Max Price</label>
-            <input type="number" [ngModel]="filter.maxPrice" (ngModelChange)="filter.maxPrice = $event"
+            <label for="filter-max-price" class="block text-sm font-medium text-gray-700 mb-1">Max Price</label>
+            <input id="filter-max-price" type="number" #maxPriceInput
                    placeholder="99999"
                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm
                           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
                           text-sm" />
           </div>
           <div class="flex items-end gap-2">
-            <button (click)="applyFilter()"
+            <button (click)="applyFilter(nameInput.value, minPriceInput.value, maxPriceInput.value)"
                     class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700
                            text-sm font-medium transition-colors">
               Apply
             </button>
-            <button (click)="clearFilter()"
+            <button (click)="clearFilter(nameInput, minPriceInput, maxPriceInput)"
                     class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300
                            text-sm font-medium transition-colors">
               Clear
@@ -72,14 +70,12 @@ import {
         </div>
       </div>
 
-      <!-- Loading -->
       @if (loading$ | async) {
         <div class="text-center py-12">
-          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <app-spinner size="lg" />
           <p class="mt-4 text-gray-500">Loading products...</p>
         </div>
       } @else {
-        <!-- Table -->
         <div class="bg-white shadow rounded-lg overflow-hidden">
           <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
@@ -101,7 +97,7 @@ import {
                       <div class="max-w-xs truncate">{{ product.name }}</div>
                     </td>
                     <td class="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
-                      {{ product.price | number:'1.2-2' }}
+                      {{ '$' + (product.price | number:'1.2-2') }}
                     </td>
                     <td class="px-6 py-4 text-sm whitespace-nowrap">
                       @if (product.discount !== null) {
@@ -138,7 +134,6 @@ import {
           </div>
         </div>
 
-        <!-- Pagination -->
         @if ((totalPages$ | async); as totalPages) {
           @if (totalPages > 1) {
             <div class="flex items-center justify-between">
@@ -164,21 +159,43 @@ import {
     </div>
   `,
 })
-export class ProductListComponent implements OnInit {
+export class ProductListComponent implements OnInit, AfterViewInit {
   private store = inject(Store);
+
+  @ViewChild('nameInput') nameInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('minPriceInput') minPriceInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('maxPriceInput') maxPriceInput!: ElementRef<HTMLInputElement>;
 
   products$: Observable<ProductListItem[]> = this.store.select(selectAllProducts);
   loading$: Observable<boolean> = this.store.select(selectProductsLoading);
   page$: Observable<number> = this.store.select(selectProductsPage);
   totalPages$: Observable<number> = this.store.select(selectProductsTotalPages);
 
-  filter: ProductFilter = {};
   private readonly limit = 20;
 
   async ngOnInit(): Promise<void> {
-    this.filter = await firstValueFrom(this.store.select(selectProductsFilter));
-    const page = await firstValueFrom(this.store.select(selectProductsPage));
-    this.loadProducts(page);
+    const [page, filter] = await Promise.all([
+      firstValueFrom(this.store.select(selectProductsPage)),
+      firstValueFrom(this.store.select(selectProductsFilter)),
+    ]);
+    this.store.dispatch(ProductsActions.loadProducts({
+      page,
+      limit: this.limit,
+      filter,
+    }));
+  }
+
+  async ngAfterViewInit(): Promise<void> {
+    const filter = await firstValueFrom(this.store.select(selectProductsFilter));
+    if (filter.name) {
+      this.nameInput.nativeElement.value = filter.name;
+    }
+    if (filter.minPrice != null) {
+      this.minPriceInput.nativeElement.value = String(filter.minPrice);
+    }
+    if (filter.maxPrice != null) {
+      this.maxPriceInput.nativeElement.value = String(filter.maxPrice);
+    }
   }
 
   loadProducts(page?: number): void {
@@ -186,51 +203,51 @@ export class ProductListComponent implements OnInit {
     this.store.dispatch(ProductsActions.loadProducts({
       page: p,
       limit: this.limit,
-      filter: this.filter,
     }));
   }
 
-  applyFilter(): void {
-    const cleaned: ProductFilter = {};
-    if (this.filter.name) {
-      cleaned.name = this.filter.name;
+  applyFilter(name: string, minPrice: string, maxPrice: string): void {
+    const filter: ProductFilter = {};
+    if (name) {
+      filter.name = name;
     }
-    if (this.filter.minPrice !== null && this.filter.minPrice !== undefined) {
-      cleaned.minPrice = this.filter.minPrice;
+    if (minPrice) {
+      filter.minPrice = +minPrice;
     }
-    if (this.filter.maxPrice !== null && this.filter.maxPrice !== undefined) {
-      cleaned.maxPrice = this.filter.maxPrice;
+    if (maxPrice) {
+      filter.maxPrice = +maxPrice;
     }
-    this.filter = cleaned;
-    this.store.dispatch(ProductsActions.setFilter({ filter: cleaned }));
-    this.loadProducts(1);
+    this.store.dispatch(ProductsActions.setFilter({ filter }));
+    this.store.dispatch(ProductsActions.loadProducts({
+      page: 1,
+      limit: this.limit,
+      filter,
+    }));
   }
 
-  clearFilter(): void {
-    this.filter = {};
+  clearFilter(nameInput: HTMLInputElement, minInput: HTMLInputElement, maxInput: HTMLInputElement): void {
+    nameInput.value = '';
+    minInput.value = '';
+    maxInput.value = '';
     this.store.dispatch(ProductsActions.clearFilter());
-    this.loadProducts(1);
+    this.store.dispatch(ProductsActions.loadProducts({
+      page: 1,
+      limit: this.limit,
+    }));
   }
 
-  nextPage(): void {
-    const page = this.snapshot.page;
-    if (page < this.snapshot.totalPages) {
+  async nextPage(): Promise<void> {
+    const page = await firstValueFrom(this.store.select(selectProductsPage));
+    const totalPages = await firstValueFrom(this.store.select(selectProductsTotalPages));
+    if (page < totalPages) {
       this.loadProducts(page + 1);
     }
   }
 
-  prevPage(): void {
-    const page = this.snapshot.page;
+  async prevPage(): Promise<void> {
+    const page = await firstValueFrom(this.store.select(selectProductsPage));
     if (page > 1) {
       this.loadProducts(page - 1);
     }
-  }
-
-  private get snapshot() {
-    let page = 1;
-    let totalPages = 1;
-    this.store.select(selectProductsPage).pipe(take(1)).subscribe(p => page = p);
-    this.store.select(selectProductsTotalPages).pipe(take(1)).subscribe(t => totalPages = t);
-    return { page, totalPages };
   }
 }

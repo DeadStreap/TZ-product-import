@@ -7,7 +7,6 @@ namespace App\Repositories;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
 use App\Entities\Product;
-use App\Entities\ProductImage;
 use App\DTO\ProductFilter;
 
 class ProductRepository
@@ -61,19 +60,18 @@ class ProductRepository
         $ids = array_map(fn (Product $p) => $p->getId(), $products);
 
         if ($ids !== []) {
-            $counts = $this->em->createQueryBuilder()
-                ->select('IDENTITY(i.product)', 'COUNT(i.id)')
-                ->from(ProductImage::class, 'i')
-                ->where('i.product IN (:ids)')
-                ->setParameter('ids', $ids)
-                ->groupBy('i.product')
-                ->getQuery()
-                ->getArrayResult();
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            $counts = $this->em->getConnection()->fetchAllAssociative(
+                "SELECT product_id, COUNT(id) AS cnt FROM product_images WHERE product_id IN ($placeholders) GROUP BY product_id",
+                $ids
+            );
 
             foreach ($counts as $row) {
+                $productId = (int) $row['product_id'];
+                $count = (int) $row['cnt'];
                 foreach ($products as $p) {
-                    if ($p->getId() === (int) $row[0]) {
-                        $p->setImagesCount((int) $row[1]);
+                    if ($p->getId() === $productId) {
+                        $p->setImagesCount($count);
                         break;
                     }
                 }

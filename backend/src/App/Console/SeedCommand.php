@@ -7,7 +7,6 @@ namespace App\Console;
 use Doctrine\ORM\EntityManager;
 use App\Entities\Product;
 use App\Entities\ProductAttribute;
-use App\Entities\ProductImage;
 use App\Entities\User;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -31,7 +30,6 @@ class SeedCommand extends Command
     {
         $output->writeln('Seeding database...');
 
-        // Create admin user
         $admin = new User();
         $admin->setEmail('admin@example.com');
         $admin->setPasswordHash(password_hash('password', PASSWORD_BCRYPT));
@@ -149,13 +147,6 @@ class SeedCommand extends Command
                 $attr->setKey($key);
                 $attr->setValue($value);
                 $this->em->persist($attr);
-            }
-
-            foreach ($data['images'] as $url) {
-                $image = new ProductImage();
-                $image->setProduct($product);
-                $image->setUrl($url);
-                $this->em->persist($image);
             }
 
             $this->em->flush();

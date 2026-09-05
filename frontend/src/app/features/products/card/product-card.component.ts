@@ -4,13 +4,14 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { Product } from '@app/shared/models/product.model';
+import { SpinnerComponent } from '@app/shared/spinner.component';
 import * as ProductsActions from '../store/products.actions';
 import { selectSelectedProduct, selectProductsLoading } from '../store/products.selectors';
 
 @Component({
   selector: 'app-product-card',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, SpinnerComponent],
   template: `
     <div class="max-w-4xl mx-auto">
       <a routerLink="/products"
@@ -23,13 +24,13 @@ import { selectSelectedProduct, selectProductsLoading } from '../store/products.
 
       @if (loading$ | async) {
         <div class="text-center py-12">
-          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <app-spinner size="lg" />
           <p class="mt-4 text-gray-500">Loading product...</p>
         </div>
       } @else {
         @if (product$ | async; as product) {
+
         <div class="bg-white shadow rounded-lg overflow-hidden">
-          <!-- Header -->
           <div class="px-6 py-5 border-b border-gray-200">
             <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
               <div>
@@ -38,7 +39,7 @@ import { selectSelectedProduct, selectProductsLoading } from '../store/products.
               </div>
               <div class="text-right">
                 <div class="text-3xl font-bold text-gray-900">
-                  {{ product.price | number:'1.2-2' }}
+                  {{ '$' + (product.price | number:'1.2-2') }}
                 </div>
                 @if (product.discount !== null) {
                   <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
@@ -50,16 +51,15 @@ import { selectSelectedProduct, selectProductsLoading } from '../store/products.
             </div>
           </div>
 
-          <!-- Images -->
           @if (product.images.length > 0) {
             <div class="px-6 py-5 border-b border-gray-200">
               <h2 class="text-lg font-medium text-gray-900 mb-4">Images</h2>
               <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                @for (image of product.images; track image.id) {
-                  <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden group">
+                @for (image of product.images; track image.id; let i = $index) {
+                  <div class="bg-gray-100 rounded-lg overflow-hidden group">
                     <img [src]="image.path ? '/uploads/' + image.path : image.url"
-                         [alt]="product.name"
-                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                         [alt]="product.name + ' — фото ' + (i + 1)"
+                         class="max-h-64 w-full object-contain group-hover:scale-105 transition-transform duration-200"
                          loading="lazy"
                          (error)="onImageError($event, image.url)" />
                   </div>
@@ -68,7 +68,6 @@ import { selectSelectedProduct, selectProductsLoading } from '../store/products.
             </div>
           }
 
-          <!-- Description -->
           @if (product.description) {
             <div class="px-6 py-5 border-b border-gray-200">
               <h2 class="text-lg font-medium text-gray-900 mb-2">Description</h2>
@@ -76,26 +75,26 @@ import { selectSelectedProduct, selectProductsLoading } from '../store/products.
             </div>
           }
 
-          <!-- Attributes -->
           @if (product.attributes.length > 0) {
             <div class="px-6 py-5">
               <h2 class="text-lg font-medium text-gray-900 mb-4">Attributes</h2>
               <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 @for (attr of product.attributes; track attr.id) {
-                  <div class="bg-gray-50 rounded-lg p-3">
-                    <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {{ attr.key }}
-                    </dt>
-                    <dd class="mt-1 text-sm text-gray-900">
-                      {{ attr.value || '-' }}
-                    </dd>
-                  </div>
+                  @if (attr.key !== 'Ссылка на упаковку' && attr.key !== 'Ссылки на фото') {
+                    <div class="bg-gray-50 rounded-lg p-3">
+                      <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {{ attr.key }}
+                      </dt>
+                      <dd class="mt-1 text-sm text-gray-900">
+                        {{ attr.key === 'Категория товара' ? (attr.value || '-').split('_').join(', ') : (attr.value || '-') }}
+                      </dd>
+                    </div>
+                  }
                 }
               </dl>
             </div>
           }
 
-          <!-- Meta -->
           <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
             <dl class="flex flex-wrap gap-x-8 gap-y-2 text-xs text-gray-500">
               <div>
@@ -109,12 +108,16 @@ import { selectSelectedProduct, selectProductsLoading } from '../store/products.
               @if (product.purchase_price !== null) {
                 <div>
                   <dt class="font-medium">Purchase Price</dt>
-                  <dd>{{ product.purchase_price | number:'1.2-2' }}</dd>
+                  <dd>{{ '$' + (product.purchase_price | number:'1.2-2') }}</dd>
                 </div>
               }
             </dl>
           </div>
         </div>
+        } @else {
+          <div class="text-center py-12">
+            <p class="text-gray-500">Product not found.</p>
+          </div>
         }
       }
     </div>

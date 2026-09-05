@@ -33,7 +33,7 @@ class Dependencies
 
             \Doctrine\ORM\Configuration::class => \DI\factory(function () {
                 return ORMSetup::createAttributeMetadataConfiguration(
-                    paths: [dirname(__DIR__, 2) . '/src/App/Entities'],
+                    paths: [dirname(__DIR__) . '/Entities'],
                     isDevMode: ($_ENV['APP_DEBUG'] ?? 'false') === 'true',
                 );
             }),

@@ -28,13 +28,21 @@ class SchemaCreateCommand extends Command
     {
         $output->writeln('<warning>Dropping old tables...</warning>');
         $conn = $this->em->getConnection();
-        $conn->executeStatement('SET FOREIGN_KEY_CHECKS = 0');
-        $conn->executeStatement('DROP TABLE IF EXISTS product_images');
-        $conn->executeStatement('DROP TABLE IF EXISTS product_attributes');
-        $conn->executeStatement('DROP TABLE IF EXISTS products');
-        $conn->executeStatement('DROP TABLE IF EXISTS import_tasks');
-        $conn->executeStatement('DROP TABLE IF EXISTS users');
-        $conn->executeStatement('SET FOREIGN_KEY_CHECKS = 1');
+        $platform = $conn->getDatabasePlatform();
+        $isMySQL = $platform instanceof \Doctrine\DBAL\Platforms\MySQLPlatform
+            || $platform instanceof \Doctrine\DBAL\Platforms\MariaDBPlatform;
+
+        if ($isMySQL) {
+            $conn->executeStatement('SET FOREIGN_KEY_CHECKS = 0');
+        }
+
+        foreach (['product_images', 'product_attributes', 'products', 'import_tasks', 'users'] as $table) {
+            $conn->executeStatement(sprintf('DROP TABLE IF EXISTS %s', $table));
+        }
+
+        if ($isMySQL) {
+            $conn->executeStatement('SET FOREIGN_KEY_CHECKS = 1');
+        }
 
         $output->writeln('Creating schema...');
         $schemaTool = new SchemaTool($this->em);

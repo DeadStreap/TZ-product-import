@@ -23,11 +23,25 @@ class ImportService
         'Доп. поле: Ссылки на фото',
     ];
 
-    private const COL_EXTERNAL_CODE = 5;
-    private const COL_NAME = 4;
-    private const COL_DESCRIPTION = 10;
-    private const COL_PRICE = 8;
-    private const COL_PURCHASE_PRICE = 11;
+    private const COLUMN_MAP = [
+        'Код' => 'external_code',
+        'Артикул' => 'article',
+        'Внешний код' => 'external_code',
+        'ExternalCode' => 'external_code',
+        'Наименование' => 'name',
+        'Название' => 'name',
+        'Name' => 'name',
+        'Описание' => 'description',
+        'Description' => 'description',
+        'Цена: Цена продажи' => 'price',
+        'Цена продажи' => 'price',
+        'Цена' => 'price',
+        'Price' => 'price',
+        'Закупочная цена' => 'purchase_price',
+        'PurchasePrice' => 'purchase_price',
+    ];
+
+    private array $columnIndex = [];
 
     public function __construct(
         private EntityManager $em,
@@ -57,6 +71,8 @@ class ImportService
             $dataRows = array_slice($rows, 1);
             $result->setTotalRows(count($dataRows));
 
+            $this->columnIndex = $this->buildColumnIndex($headers);
+
             $this->em->getConnection()->beginTransaction();
 
             try {
@@ -84,21 +100,50 @@ class ImportService
         return $result;
     }
 
+    private function buildColumnIndex(array $headers): array
+    {
+        $index = [];
+
+        foreach ($headers as $colIndex => $header) {
+            if (!is_string($header)) {
+                continue;
+            }
+
+            $header = trim($header);
+
+            if (isset(self::COLUMN_MAP[$header])) {
+                $index[self::COLUMN_MAP[$header]] = $colIndex;
+            }
+        }
+
+        return $index;
+    }
+
+    private function getCellValue(array $row, string $field): mixed
+    {
+        $colIndex = $this->columnIndex[$field] ?? null;
+
+        return $colIndex !== null ? ($row[$colIndex] ?? null) : null;
+    }
+
     private function processRow(array $row, array $headers, ImportResult $result, int $rowNumber): void
     {
-        $externalCode = $row[self::COL_EXTERNAL_CODE] ?? null;
+        $externalCode = $this->getCellValue($row, 'external_code');
+        if (empty($externalCode)) {
+            $externalCode = $this->getCellValue($row, 'article');
+        }
 
         if (empty($externalCode)) {
             throw new \RuntimeException('Missing external code');
         }
 
-        $name = $row[self::COL_NAME] ?? null;
+        $name = $this->getCellValue($row, 'name');
         if (empty($name)) {
             throw new \RuntimeException('Missing product name');
         }
 
-        $price = $this->parsePrice($row[self::COL_PRICE] ?? null);
-        $purchasePrice = $this->parsePrice($row[self::COL_PURCHASE_PRICE] ?? null);
+        $price = $this->parsePrice($this->getCellValue($row, 'price'));
+        $purchasePrice = $this->parsePrice($this->getCellValue($row, 'purchase_price'));
 
         $product = $this->productRepo->findByExternalCode((string) $externalCode);
         $isNew = $product === null;
@@ -109,7 +154,7 @@ class ImportService
         }
 
         $product->setName((string) $name);
-        $product->setDescription($row[self::COL_DESCRIPTION] ?? null);
+        $product->setDescription($this->getCellValue($row, 'description'));
         $product->setPrice($price);
         $product->setPurchasePrice($purchasePrice);
         $product->calculateDiscount();

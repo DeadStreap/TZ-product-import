@@ -1,124 +1,102 @@
-# Product Import Application
+# Product Import
 
-A full-stack application for importing products from XLSX files, built with Slim 4 (PHP) backend and Angular 18 frontend.
+Приложение для импорта товаров из XLSX-файлов с асинхронной обработкой через очередь сообщений.
 
-## Features
+**Стек:** Slim 4 + Doctrine ORM (backend), Angular 18 + NgRx (frontend), MySQL 8.0, RabbitMQ
 
-- Import products from XLSX files
-- Server-side pagination and filtering
-- JWT authentication
-- Image downloading and storage
-- Product attributes (key-value pairs)
-- Discount calculation
-
-## Tech Stack
-
-### Backend
-- PHP 8.4
-- Slim 4
-- Doctrine ORM
-- MySQL 8.0
-- RabbitMQ
-
-### Frontend
-- Angular 18
-- NgRx (State Management)
-- Tailwind CSS
-- TypeScript (strict mode)
-
-## Quick Start
-
-### Prerequisites
-- Docker & Docker Compose (Docker Desktop on macOS)
-- Node.js 20 via nvm (Angular 18 is not compatible with Node 25)
-
-### 1. Clone and setup
+## Быстрый старт
 
 ```bash
 cp .env.example .env
-make setup
+make setup          # сборка + создание схемы + сиды
+make frontend-dev   # в отдельном терминале
 ```
 
-This runs `build` → `up` → `migrate` (creates database tables).
+Открыть `http://localhost:4200` — логин: `admin@example.com` / `password`
 
-### 2. Frontend development
+## Команды
+
+| Команда | Описание |
+|---------|----------|
+| `make build` | Сборка Docker-образов |
+| `make up` | Запуск всех сервисов |
+| `make down` | Остановка всех сервисов |
+| `make setup` | Сборка + создание схемы + сиды |
+| `make migrate` | Запуск Doctrine миграций |
+| `make seed` | Заполнение БД тестовыми данными (admin + 10 товаров) |
+| `make schema-create` | Удаление и пересоздание всех таблиц |
+| `make frontend-dev` | Запуск Angular dev-сервера |
+| `make frontend-build` | Сборка фронтенда для продакшена |
+| `make test` | Запуск всех тестов |
+| `make test-unit` | Только unit-тесты |
+| `make test-integration` | Только integration-тесты |
+| `make lint` | Проверка PHPStan + CS Fixer |
+| `make fix` | Автоисправление стиля кода |
+| `make logs` | Логи приложения |
+
+## Архитектура
+
+```
+├── backend/
+│   ├── bin/console              # CLI-команды
+│   ├── docker/Dockerfile        # Multi-stage сборка PHP 8.4
+│   ├── migrations/              # Doctrine миграции
+│   └── src/App/
+│       ├── Config/              # Маршруты, middleware, DI
+│       ├── Console/             # Команды: schema, seed, consumer
+│       ├── Controllers/         # Auth, Import, Product, Health
+│       ├── DTO/                 # ImportResult, ProductFilter
+│       ├── Entities/            # Product, Attribute, Image, Task, User
+│       ├── Enums/               # ImportStatus
+│       ├── Messages/            # Асинхронный обработчик Messenger
+│       ├── Middleware/           # Auth (JWT), RateLimit
+│       ├── Repositories/        # Слой доступа к данным
+│       └── Services/            # Import, ImageDownload, Auth
+├── frontend/
+│   └── src/app/
+│       ├── core/                # Interceptor, guard, сервисы
+│       ├── features/            # Auth, Import, Products (NgRx)
+│       └── shared/              # Модели, SpinnerComponent
+├── docs/openapi.yaml            # Документация API
+├── docker-compose.yml           # app, db, nginx, rabbitmq, messenger
+├── .env.example                 # Шаблон переменных окружения
+└── Makefile                     # Все команды проекта
+```
+
+## API
+
+Полная спецификация: [`docs/openapi.yaml`](docs/openapi.yaml)
+
+| Метод | Эндпоинт | Auth | Описание |
+|-------|----------|------|----------|
+| GET | `/api/health` | Нет | Проверка работоспособности |
+| POST | `/api/auth/login` | Нет | Получение JWT-токена |
+| POST | `/api/import` | Да | Загрузка XLSX для импорта |
+| GET | `/api/import/{id}/status` | Да | Получение статуса импорта |
+| GET | `/api/products` | Да | Список товаров (пагинация, фильтры) |
+| GET | `/api/products/{id}` | Да | Карточка товара |
+
+## Сервисы Docker
+
+| Сервис | Порт | Описание |
+|--------|------|----------|
+| app | 8080 | PHP-FPM бэкенд |
+| db | 3306 | MySQL 8.0 |
+| nginx | 80 | Reverse proxy |
+| rabbitmq | 5672 | Брокер сообщений (AMQP) |
+| messenger | - | Консьюмер очереди |
+
+## Разработка
 
 ```bash
-source ~/.nvm/nvm.sh && nvm use 20
-cd frontend
-npm install
-npm start
+make lint    # PHPStan (level 5)
+make fix     # Исправление стиля кода
+make test    # Запуск тестов
 ```
 
-### 3. Access the application
+## Технологии
 
-- Frontend (dev): http://localhost:4200
-- Frontend (nginx): http://localhost (after `npm run build`)
-- Backend API: http://localhost/api/health
-- RabbitMQ UI: http://localhost:15672 (guest/guest)
-
-### 4. Login
-
-- Email: admin@example.com
-- Password: password
-
-## API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | /api/auth/login | Authenticate user |
-| GET | /api/health | Health check |
-| POST | /api/import | Import XLSX file |
-| GET | /api/import/{id}/status | Get import status |
-| GET | /api/products | List products (paginated) |
-| GET | /api/products/{id} | Get product details |
-
-## Development
-
-### Backend commands
-
-```bash
-make lint          # Run PHPStan and CS Fixer
-make fix           # Auto-fix code style
-make test          # Run PHPUnit tests
-```
-
-### Frontend commands
-
-```bash
-cd frontend
-npm start          # Start dev server
-npm run build      # Build for production
-npm test           # Run unit tests
-npm run lint       # Run linter
-```
-
-## Shutdown & Restart
-
-```bash
-# Stop all containers
-sudo docker compose down
-
-# Start all containers
-sudo docker compose up -d
-```
-
-## Project Structure
-
-```
-product-import/
-├── backend/                 # Slim 4 API
-│   ├── src/App/            # Application code
-│   ├── bin/                # Console commands
-│   ├── docker/             # Docker configuration
-│   └── tests/              # PHPUnit tests
-├── frontend/               # Angular 18
-│   ├── src/app/            # Application code
-│   │   ├── core/           # Services, interceptors, guards
-│   │   ├── features/       # Feature modules
-│   │   └── shared/         # Models and shared components
-│   └── docker/             # Docker configuration
-├── docker-compose.yml      # Docker services
-├── Makefile               # Development commands
-└── .env.example           # Environment variables
-```
+- **Backend:** PHP 8.4, Slim 4, Doctrine ORM, Symfony Messenger, Firebase JWT
+- **Frontend:** Angular 18, NgRx, Tailwind CSS 3.4, TypeScript (strict)
+- **Инфраструктура:** Docker, MySQL 8.0, RabbitMQ, Nginx
+- **Качество кода:** PHPStan level 5, PHP CS Fixer (PER-CS2.0)

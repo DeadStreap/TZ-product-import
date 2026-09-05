@@ -27,7 +27,7 @@ class RateLimitMiddleware implements MiddlewareInterface
         $ip = $request->getServerParams()['REMOTE_ADDR'] ?? 'unknown';
         $path = (string) $request->getUri()->getPath();
 
-        $limit = ($request->getMethod() === 'POST' && str_contains($path, '/import')) ? 10 : $this->maxRequests;
+        $limit = ($request->getMethod() === 'POST' && str_contains($path, '/import')) ? 30 : $this->maxRequests;
 
         $key = md5($ip . ':' . $path);
         /** @var CacheItem $item */

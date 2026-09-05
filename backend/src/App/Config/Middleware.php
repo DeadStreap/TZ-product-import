@@ -21,8 +21,6 @@ class Middleware
                 ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
         });
 
-        // ponytail: rate limit disabled for demo
-
         $app->addErrorMiddleware(
             ($_ENV['APP_DEBUG'] ?? 'false') === 'true',
             true,

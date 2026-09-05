@@ -33,8 +33,8 @@ final class Version20260901 extends AbstractMigration
         $this->addSql('CREATE TABLE product_attributes (
             id INT AUTO_INCREMENT NOT NULL,
             product_id INT NOT NULL,
-            `key` VARCHAR(255) NOT NULL,
-            `value` TEXT DEFAULT NULL,
+            attr_key VARCHAR(255) NOT NULL,
+            attr_value TEXT DEFAULT NULL,
             INDEX IDX_attributes_product_id (product_id),
             PRIMARY KEY(id)
         ) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');

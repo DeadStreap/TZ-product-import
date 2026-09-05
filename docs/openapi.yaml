@@ -71,7 +71,7 @@ paths:
       description: |
         Uploads an XLSX file and starts an asynchronous import process.
         Returns a task ID for polling status.
-        Rate limit: 10 requests per minute.
+        Rate limit: 30 requests per minute.
       operationId: importProducts
       requestBody:
         required: true

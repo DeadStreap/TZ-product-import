@@ -6,9 +6,7 @@ declare(strict_types=1);
 require __DIR__ . '/../vendor/autoload.php';
 
 use Dotenv\Dotenv;
-use Doctrine\DBAL\DriverManager;
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\ORMSetup;
+use App\Config\Dependencies;
 use App\Console\SchemaCreateCommand;
 use App\Console\SeedCommand;
 use App\Console\ConsumeCommand;
@@ -17,27 +15,13 @@ use Symfony\Component\Console\Application;
 $dotenv = Dotenv::createImmutable(dirname(__DIR__));
 $dotenv->safeLoad();
 
-$connectionParams = [
-    'driver' => $_ENV['DB_DRIVER'] ?? 'pdo_mysql',
-    'dbname' => $_ENV['DB_NAME'] ?? 'product_import',
-    'user' => $_ENV['DB_USER'] ?? 'root',
-    'password' => $_ENV['DB_PASSWORD'] ?? 'secret',
-    'host' => $_ENV['DB_HOST'] ?? '127.0.0.1',
-    'port' => $_ENV['DB_PORT'] ?? '3306',
-    'charset' => 'utf8mb4',
-];
-
-$config = ORMSetup::createAttributeMetadataConfiguration(
-    paths: [dirname(__DIR__) . '/src/App/Entities'],
-    isDevMode: ($_ENV['APP_DEBUG'] ?? 'false') === 'true',
-);
-
-$conn = DriverManager::getConnection($connectionParams);
-$em = new EntityManager($conn, $config);
+$containerBuilder = new \DI\ContainerBuilder();
+$containerBuilder->addDefinitions(Dependencies::register());
+$container = $containerBuilder->build();
 
 $app = new Application('Product Import Console');
-$app->add(new SchemaCreateCommand($em));
-$app->add(new SeedCommand($em));
-$app->add(new ConsumeCommand($em));
+$app->add($container->get(SchemaCreateCommand::class));
+$app->add($container->get(SeedCommand::class));
+$app->add(new ConsumeCommand($container->get(\Symfony\Component\Messenger\MessageBusInterface::class)));
 $app->setDefaultCommand('list', false);
 $app->run();

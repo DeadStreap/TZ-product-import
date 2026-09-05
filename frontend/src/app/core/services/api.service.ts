@@ -27,11 +27,11 @@ export class ApiService {
     if (filter?.name) {
       params = params.set('name', filter.name);
     }
-    if (filter?.minPrice !== undefined) {
-      params = params.set('minPrice', filter.minPrice.toString());
+    if (filter?.minPrice != null && filter.minPrice !== 0) {
+      params = params.set('minPrice', String(filter.minPrice));
     }
-    if (filter?.maxPrice !== undefined) {
-      params = params.set('maxPrice', filter.maxPrice.toString());
+    if (filter?.maxPrice != null && filter.maxPrice !== 0) {
+      params = params.set('maxPrice', String(filter.maxPrice));
     }
 
     return this.http.get<PaginatedResponse<ProductListItem>>(`${this.apiUrl}/products`, { params });
