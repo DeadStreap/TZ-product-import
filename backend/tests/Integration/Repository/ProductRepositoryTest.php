@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration\Repository;
 
-use App\Entities\Product;
 use App\DTO\ProductFilter;
+use App\Entities\Product;
 use App\Tests\Integration\IntegrationTestCase;
 
 class ProductRepositoryTest extends IntegrationTestCase
@@ -108,14 +108,14 @@ class ProductRepositoryTest extends IntegrationTestCase
 
     public function testCount(): void
     {
-        $this->assertCount(0, $this->productRepo->count([]));
+        $this->assertEquals(0, $this->productRepo->count());
 
         $this->createProduct('EXT-001');
         $this->createProduct('EXT-002');
 
         // Note: count() uses EntityRepository::count which may not work with custom repos
         // This is a basic smoke test
-        $this->assertIsInt($this->productRepo->count([]));
+        $this->assertIsInt($this->productRepo->count());
     }
 
     public function testSaveMultipleProducts(): void

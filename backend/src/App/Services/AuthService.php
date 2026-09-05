@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Repositories\UserRepository;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
-use App\Repositories\UserRepository;
 
 class AuthService
 {

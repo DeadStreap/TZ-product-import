@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\DTO\ProductFilter;
+use App\Entities\Product;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
-use App\Entities\Product;
-use App\DTO\ProductFilter;
 
 class ProductRepository
 {

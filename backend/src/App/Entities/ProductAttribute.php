@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Entities;
 
 use Doctrine\ORM\Mapping as ORM;
-
 #[ORM\Entity]
 #[ORM\Table(name: 'product_attributes')]
 class ProductAttribute

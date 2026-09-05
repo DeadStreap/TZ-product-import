@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Entities\User;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
-use App\Entities\User;
 
 class UserRepository
 {

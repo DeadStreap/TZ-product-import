@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration\Service;
 
-use App\Services\ImportService;
 use App\Services\ImageDownloadService;
+use App\Services\ImportService;
 use App\Tests\Integration\IntegrationTestCase;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
 class ImportServiceIntegrationTest extends IntegrationTestCase
 {

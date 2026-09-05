@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Entities\ProductAttribute;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
-use App\Entities\ProductAttribute;
 
 class ProductAttributeRepository
 {

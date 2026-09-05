@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Entities;
 
-use Doctrine\ORM\Mapping as ORM;
 use App\Enums\ImportStatus;
-
+use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity]
 #[ORM\HasLifecycleCallbacks]
 #[ORM\Table(name: 'import_tasks')]

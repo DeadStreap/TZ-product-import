@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Service;
 
-use App\Services\ImportService;
-use App\Services\ImageDownloadService;
-use App\Repositories\ProductRepository;
+use App\Entities\Product;
 use App\Repositories\ProductAttributeRepository;
 use App\Repositories\ProductImageRepository;
-use App\Entities\Product;
-use Doctrine\ORM\EntityManager;
+use App\Repositories\ProductRepository;
+use App\Services\ImageDownloadService;
+use App\Services\ImportService;
 use Doctrine\DBAL\Connection;
+use Doctrine\ORM\EntityManager;
 use PHPUnit\Framework\TestCase;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
 class ImportServiceTest extends TestCase
 {
@@ -189,7 +189,7 @@ class ImportServiceTest extends TestCase
         $result = $service->processFile($filePath);
 
         $this->assertTrue($result->hasErrors());
-        $this->assertEquals(1, $result->getSkipped());
+        $this->assertCount(1, $result->getErrors());
     }
 
     private function createService(): ImportService

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration;
 
+use App\Repositories\ProductAttributeRepository;
+use App\Repositories\ProductImageRepository;
+use App\Repositories\ProductRepository;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
 use PHPUnit\Framework\TestCase;
-use App\Repositories\ProductRepository;
-use App\Repositories\ProductAttributeRepository;
-use App\Repositories\ProductImageRepository;
 
 abstract class IntegrationTestCase extends TestCase
 {

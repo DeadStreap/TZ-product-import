@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Config;
 
-use Slim\App;
 use App\Controllers\AuthController;
+use App\Controllers\HealthController;
 use App\Controllers\ImportController;
 use App\Controllers\ProductController;
-use App\Controllers\HealthController;
 use App\Middleware\RateLimitMiddleware;
+use Slim\App;
 
 class Routes
 {

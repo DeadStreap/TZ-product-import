@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
-use Psr\Http\Message\ResponseInterface as Response;
-use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Entities\ImportTask;
 use App\Enums\ImportStatus;
-use App\Repositories\ImportTaskRepository;
 use App\Messages\ImportProductsMessage;
+use App\Repositories\ImportTaskRepository;
 use Doctrine\ORM\EntityManager;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 class ImportController

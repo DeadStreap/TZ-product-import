@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Service;
 
-use App\Services\AuthService;
-use App\Repositories\UserRepository;
 use App\Entities\User;
+use App\Repositories\UserRepository;
+use App\Services\AuthService;
 use PHPUnit\Framework\TestCase;
 
 class AuthServiceTest extends TestCase

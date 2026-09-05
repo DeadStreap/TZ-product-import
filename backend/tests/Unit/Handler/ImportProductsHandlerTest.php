@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Handler;
 
-use App\Messages\ImportProductsHandler;
-use App\Messages\ImportProductsMessage;
-use App\Services\ImportService;
 use App\DTO\ImportResult;
 use App\Entities\ImportTask;
 use App\Enums\ImportStatus;
+use App\Messages\ImportProductsHandler;
+use App\Messages\ImportProductsMessage;
 use App\Repositories\ImportTaskRepository;
+use App\Services\ImportService;
 use Doctrine\ORM\EntityManager;
 use PHPUnit\Framework\TestCase;
 

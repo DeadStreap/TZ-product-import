@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Messages;
 
-use App\Services\ImportService;
-use App\Entities\ImportTask;
 use App\Enums\ImportStatus;
 use App\Repositories\ImportTaskRepository;
+use App\Services\ImportService;
 use Doctrine\ORM\EntityManager;
 
 class ImportProductsHandler

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use Doctrine\ORM\EntityManager;
+use App\DTO\ImportResult;
 use App\Entities\Product;
 use App\Entities\ProductAttribute;
 use App\Entities\ProductImage;
-use App\DTO\ImportResult;
-use App\Repositories\ProductRepository;
 use App\Repositories\ProductAttributeRepository;
 use App\Repositories\ProductImageRepository;
+use App\Repositories\ProductRepository;
+use Doctrine\ORM\EntityManager;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ImportService
@@ -154,7 +154,7 @@ class ImportService
         }
 
         $product->setName((string) $name);
-        $product->setDescription($this->getCellValue($row, 'description'));
+        $product->setDescription($this->getCellValue($row, 'description') !== null ? (string) $this->getCellValue($row, 'description') : null);
         $product->setPrice($price);
         $product->setPurchasePrice($purchasePrice);
         $product->calculateDiscount();

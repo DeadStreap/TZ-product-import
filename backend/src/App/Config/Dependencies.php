@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace App\Config;
 
+use App\Messages\ImportProductsHandler;
+use App\Middleware\AuthMiddleware;
+use App\Repositories\ImportTaskRepository;
+use App\Repositories\ProductAttributeRepository;
+use App\Repositories\ProductImageRepository;
+use App\Repositories\ProductRepository;
+use App\Repositories\UserRepository;
+use App\Services\AuthService;
+use App\Services\ImageDownloadService;
+use App\Services\ImportService;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;
-use App\Repositories\ProductRepository;
-use App\Repositories\ProductAttributeRepository;
-use App\Repositories\ProductImageRepository;
-use App\Repositories\ImportTaskRepository;
-use App\Repositories\UserRepository;
-use App\Services\ImportService;
-use App\Services\ImageDownloadService;
-use App\Services\AuthService;
-use App\Messages\ImportProductsHandler;
-use App\Middleware\AuthMiddleware;
-use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Handler\HandlersLocator;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Middleware\HandleMessageMiddleware;
 
 class Dependencies

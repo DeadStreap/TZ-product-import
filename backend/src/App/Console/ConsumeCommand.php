@@ -9,9 +9,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Messenger\Bridge\Amqp\Transport\AmqpTransportFactory;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Transport\Serialization\PhpSerializer;
 use Symfony\Component\Messenger\Worker;
-use Symfony\Component\Messenger\MessageBusInterface;
 
 class ConsumeCommand extends Command
 {

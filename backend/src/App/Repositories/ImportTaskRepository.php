@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Entities\ImportTask;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
-use App\Entities\ImportTask;
 
 class ImportTaskRepository
 {

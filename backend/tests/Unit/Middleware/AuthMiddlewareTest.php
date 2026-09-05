@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Middleware;
 
 use App\Middleware\AuthMiddleware;
+use App\Repositories\UserRepository;
 use App\Services\AuthService;
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Slim\Psr7\Response;
-use Slim\Psr7\Streams\Stream;
 
 class AuthMiddlewareTest extends TestCase
 {
@@ -20,7 +19,8 @@ class AuthMiddlewareTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->authService = new AuthService('test-secret', 3600);
+        $userRepo = $this->createMock(UserRepository::class);
+        $this->authService = new AuthService('test-secret', 3600, $userRepo);
         $this->middleware = new AuthMiddleware($this->authService);
     }
 
