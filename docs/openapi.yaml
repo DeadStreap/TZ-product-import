@@ -2,15 +2,15 @@ openapi: 3.0.3
 info:
   title: Product Import API
   description: |
-    API for importing products from XLSX files, listing, and viewing product details.
-    Built with Slim 4 + Doctrine ORM.
+    API для импорта товаров из XLSX-файлов, получения списка товаров и просмотра карточек.
+    Построен на Slim 4 + Doctrine ORM.
   version: 1.0.0
   contact:
     name: API Support
 
 servers:
   - url: /api
-    description: API base path
+    description: Базовый путь API
 
 security:
   - bearerAuth: []
@@ -19,13 +19,13 @@ paths:
   /health:
     get:
       tags: [System]
-      summary: Health check
-      description: Returns service status. No authentication required.
+      summary: Проверка работоспособности
+      description: Возвращает статус сервиса. Аутентификация не требуется.
       security: []
       operationId: healthCheck
       responses:
         '200':
-          description: Service is healthy
+          description: Сервис работает
           content:
             application/json:
               schema:
@@ -34,8 +34,8 @@ paths:
   /auth/login:
     post:
       tags: [Auth]
-      summary: Authenticate user
-      description: Returns a JWT token for valid credentials. No authentication required.
+      summary: Авторизация пользователя
+      description: Возвращает JWT-токен при корректных учётных данных. Аутентификация не требуется.
       security: []
       operationId: login
       requestBody:
@@ -46,19 +46,19 @@ paths:
               $ref: '#/components/schemas/LoginRequest'
       responses:
         '200':
-          description: Authentication successful
+          description: Авторизация успешна
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/LoginResponse'
         '400':
-          description: Missing email or password
+          description: Не указан email или пароль
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '401':
-          description: Invalid credentials
+          description: Неверные учётные данные
           content:
             application/json:
               schema:
@@ -67,11 +67,11 @@ paths:
   /import:
     post:
       tags: [Import]
-      summary: Import products from XLSX file
+      summary: Импорт товаров из XLSX-файла
       description: |
-        Uploads an XLSX file and starts an asynchronous import process.
-        Returns a task ID for polling status.
-        Rate limit: 30 requests per minute.
+        Загружает XLSX-файл и запускает асинхронный процесс импорта.
+        Возвращает ID задачи для отслеживания статуса.
+        Ограничение: 30 запросов в минуту.
       operationId: importProducts
       requestBody:
         required: true
@@ -84,16 +84,16 @@ paths:
                 file:
                   type: string
                   format: binary
-                  description: XLSX file (max 50MB)
+                  description: XLSX-файл (макс. 50 МБ)
       responses:
         '202':
-          description: Import task accepted
+          description: Задача импорта принята
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ImportAccepted'
         '400':
-          description: Invalid file type or missing file
+          description: Неверный тип файла или файл не передан
           content:
             application/json:
               schema:
@@ -106,8 +106,8 @@ paths:
   /import/{id}/status:
     get:
       tags: [Import]
-      summary: Get import task status
-      description: Returns the current status and result of an import task.
+      summary: Получить статус задачи импорта
+      description: Возвращает текущий статус и результат задачи импорта.
       operationId: getImportStatus
       parameters:
         - name: id
@@ -115,10 +115,10 @@ paths:
           required: true
           schema:
             type: integer
-          description: Import task ID
+          description: ID задачи импорта
       responses:
         '200':
-          description: Task status
+          description: Статус задачи
           content:
             application/json:
               schema:
@@ -126,7 +126,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
-          description: Task not found
+          description: Задача не найдена
           content:
             application/json:
               schema:
@@ -135,10 +135,10 @@ paths:
   /products:
     get:
       tags: [Products]
-      summary: List products
+      summary: Список товаров
       description: |
-        Returns a paginated list of products with optional filtering.
-        Server-side pagination with max 100 items per page.
+        Возвращает постраничный список товаров с возможностью фильтрации.
+        Серверная пагинация, максимум 100 элементов на странице.
       operationId: listProducts
       parameters:
         - name: page
@@ -147,7 +147,7 @@ paths:
             type: integer
             default: 1
             minimum: 1
-          description: Page number
+          description: Номер страницы
         - name: limit
           in: query
           schema:
@@ -155,27 +155,27 @@ paths:
             default: 20
             minimum: 1
             maximum: 100
-          description: Items per page
+          description: Количество элементов на странице
         - name: name
           in: query
           schema:
             type: string
-          description: Filter by product name (partial match)
+          description: Фильтр по названию товара (частичное совпадение)
         - name: minPrice
           in: query
           schema:
             type: number
             format: float
-          description: Minimum price filter
+          description: Минимальная цена
         - name: maxPrice
           in: query
           schema:
             type: number
             format: float
-          description: Maximum price filter
+          description: Максимальная цена
       responses:
         '200':
-          description: Paginated product list
+          description: Постраничный список товаров
           content:
             application/json:
               schema:
@@ -186,8 +186,8 @@ paths:
   /products/{id}:
     get:
       tags: [Products]
-      summary: Get product details
-      description: Returns full product details including attributes and images.
+      summary: Получить карточку товара
+      description: Возвращает полную информацию о товаре, включая атрибуты и изображения.
       operationId: getProduct
       parameters:
         - name: id
@@ -195,10 +195,10 @@ paths:
           required: true
           schema:
             type: integer
-          description: Product ID
+          description: ID товара
       responses:
         '200':
-          description: Product details
+          description: Карточка товара
           content:
             application/json:
               schema:
@@ -206,7 +206,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
         '404':
-          description: Product not found
+          description: Товар не найден
           content:
             application/json:
               schema:
@@ -218,22 +218,22 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: JWT token from /auth/login
+      description: JWT-токен, полученный через /auth/login
 
   responses:
     Unauthorized:
-      description: Missing or invalid authentication token
+      description: Токен аутентификации отсутствует или недействителен
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
     RateLimited:
-      description: Rate limit exceeded
+      description: Превышен лимит запросов
       headers:
         Retry-After:
           schema:
             type: integer
-          description: Seconds to wait before retrying
+          description: Количество секунд до повторной попытки
       content:
         application/json:
           schema:
@@ -277,7 +277,7 @@ components:
       properties:
         error:
           type: string
-          description: Error message
+          description: Текст ошибки
 
     ImportAccepted:
       type: object
@@ -285,13 +285,13 @@ components:
       properties:
         task_id:
           type: integer
-          description: Import task ID for status polling
+          description: ID задачи импорта для отслеживания статуса
         status:
           type: string
           example: pending
         message:
           type: string
-          example: "Import started. Check status at /api/import/{id}/status"
+          example: "Импорт начат. Статус: /api/import/{id}/status"
 
     ImportTaskStatus:
       type: object
@@ -310,18 +310,23 @@ components:
       properties:
         total_rows:
           type: integer
+          description: Всего строк в файле
         imported:
           type: integer
+          description: Импортировано новых товаров
         updated:
           type: integer
+          description: Обновлено существующих товаров
         skipped:
           type: integer
+          description: Пропущено строк
         errors:
           type: array
           items:
             $ref: '#/components/schemas/ImportError'
         errors_count:
           type: integer
+          description: Количество ошибок
 
     ImportError:
       type: object
@@ -329,9 +334,10 @@ components:
       properties:
         row:
           type: integer
-          description: Row number in the XLSX file (1-indexed, header=1)
+          description: Номер строки в XLSX-файле (нумерация с 1, заголовок = строка 1)
         error:
           type: string
+          description: Текст ошибки
 
     ProductListResponse:
       type: object
@@ -343,12 +349,16 @@ components:
             $ref: '#/components/schemas/ProductListItem'
         total:
           type: integer
+          description: Общее количество товаров
         page:
           type: integer
+          description: Текущая страница
         limit:
           type: integer
+          description: Элементов на странице
         total_pages:
           type: integer
+          description: Всего страниц
 
     ProductListItem:
       type: object
@@ -369,6 +379,7 @@ components:
           nullable: true
         images_count:
           type: integer
+          description: Количество изображений
 
     Product:
       type: object
@@ -433,4 +444,4 @@ components:
         path:
           type: string
           nullable: true
-          description: Local file path after download
+          description: Локальный путь к файлу после скачивания

@@ -19,6 +19,7 @@ services:
     volumes:
       - uploads_data:/var/www/uploads
       - ./backend/src:/var/www/src
+      - ./docs:/var/www/docs:ro
     environment:
       DB_HOST: db
       DB_DRIVER: pdo_mysql
