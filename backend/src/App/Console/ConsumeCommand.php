@@ -44,14 +44,13 @@ class ConsumeCommand extends Command
         }
 
         $serializer = new PhpSerializer();
-        $amqpFactory = new AmqpTransportFactory(null, $serializer);
+        $amqpFactory = new AmqpTransportFactory();
         $transport = $amqpFactory->createTransport($transportDsn, [], $serializer);
-        $receiver = $transport->getReceiver();
 
         $output->writeln('Consuming messages... Press Ctrl+C to stop.');
 
         $worker = new Worker(
-            ['async' => $receiver],
+            ['async' => $transport],
             $this->bus,
         );
 

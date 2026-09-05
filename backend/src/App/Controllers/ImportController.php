@@ -47,6 +47,9 @@ class ImportController
         }
 
         $tempFile = tempnam(sys_get_temp_dir(), 'import_');
+        if ($tempFile === false) {
+            return $this->jsonError($response, 'Failed to create temp file', 500);
+        }
         $file->moveTo($tempFile);
 
         $task = new ImportTask();

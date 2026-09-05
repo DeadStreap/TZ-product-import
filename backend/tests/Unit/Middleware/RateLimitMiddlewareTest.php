@@ -51,7 +51,7 @@ class RateLimitMiddlewareTest extends TestCase
         $handler = $this->createMock(RequestHandlerInterface::class);
         $handler->method('handle')->willReturn(new Response());
 
-        for ($i = 0; $i < 60; $i++) {
+        for ($i = 0; $i < 120; $i++) {
             $middleware->process($request, $handler);
         }
 
@@ -66,11 +66,11 @@ class RateLimitMiddlewareTest extends TestCase
     public function testImportPathHasLowerLimit(): void
     {
         $middleware = new RateLimitMiddleware($this->cacheDir);
-        $request = $this->createRequest('/api/import');
+        $request = $this->createRequest('/api/import', '127.0.0.1', 'POST');
         $handler = $this->createMock(RequestHandlerInterface::class);
         $handler->method('handle')->willReturn(new Response());
 
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 30; $i++) {
             $middleware->process($request, $handler);
         }
 
@@ -83,11 +83,11 @@ class RateLimitMiddlewareTest extends TestCase
     {
         $middleware = new RateLimitMiddleware($this->cacheDir);
         $productsRequest = $this->createRequest('/api/products');
-        $importRequest = $this->createRequest('/api/import');
+        $importRequest = $this->createRequest('/api/import', '127.0.0.1', 'POST');
         $handler = $this->createMock(RequestHandlerInterface::class);
         $handler->method('handle')->willReturn(new Response());
 
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 30; $i++) {
             $middleware->process($importRequest, $handler);
         }
 
@@ -106,7 +106,7 @@ class RateLimitMiddlewareTest extends TestCase
         $handler = $this->createMock(RequestHandlerInterface::class);
         $handler->method('handle')->willReturn(new Response());
 
-        for ($i = 0; $i < 60; $i++) {
+        for ($i = 0; $i < 120; $i++) {
             $middleware->process($request1, $handler);
         }
 
@@ -117,13 +117,14 @@ class RateLimitMiddlewareTest extends TestCase
         $this->assertEquals(200, $response2->getStatusCode());
     }
 
-    private function createRequest(string $path, string $ip = '127.0.0.1'): ServerRequestInterface
+    private function createRequest(string $path, string $ip = '127.0.0.1', string $method = 'GET'): ServerRequestInterface
     {
         $request = $this->createMock(ServerRequestInterface::class);
         $uri = $this->createMock(Uri::class);
         $uri->method('getPath')->willReturn($path);
 
         $request->method('getUri')->willReturn($uri);
+        $request->method('getMethod')->willReturn($method);
         $request->method('getServerParams')->willReturn(['REMOTE_ADDR' => $ip]);
         $request->method('withAttribute')->willReturnSelf();
 
