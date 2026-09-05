@@ -11,9 +11,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 
 class ProductController
 {
-    public function __construct(private ProductRepository $productRepo)
-    {
-    }
+    public function __construct(private ProductRepository $productRepo) {}
 
     public function index(Request $request, Response $response): Response
     {
@@ -26,7 +24,7 @@ class ProductController
         $result = $this->productRepo->findByFilter($filter, $page, $limit);
 
         $items = array_map(
-            fn ($p): array => $p->toListItemArray(),
+            fn($p): array => $p->toListItemArray(),
             $result['items']
         );
 

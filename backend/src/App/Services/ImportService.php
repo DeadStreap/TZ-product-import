@@ -49,8 +49,7 @@ class ImportService
         private ProductAttributeRepository $attributeRepo,
         private ProductImageRepository $imageRepo,
         private ImageDownloadService $imageDownloadService,
-    ) {
-    }
+    ) {}
 
     public function processFile(string $filePath): ImportResult
     {

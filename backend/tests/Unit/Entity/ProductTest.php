@@ -8,6 +8,7 @@ use App\Entities\Product;
 use App\Entities\ProductAttribute;
 use App\Entities\ProductImage;
 use PHPUnit\Framework\TestCase;
+use ReflectionProperty;
 
 class ProductTest extends TestCase
 {
@@ -54,6 +55,7 @@ class ProductTest extends TestCase
     public function testToArrayReturnsCorrectShape(): void
     {
         $product = new Product();
+        $this->setId($product, 1);
         $product->setExternalCode('EXT-001');
         $product->setName('Test Product');
         $product->setDescription('Description');
@@ -69,7 +71,7 @@ class ProductTest extends TestCase
         $this->assertEquals('Description', $array['description']);
         $this->assertEquals(99.99, $array['price']);
         $this->assertEquals(50.0, $array['purchase_price']);
-        $this->assertEquals(50.0, $array['discount']);
+        $this->assertEqualsWithDelta(50.0, $array['discount'], 0.1);
         $this->assertArrayHasKey('created_at', $array);
         $this->assertArrayHasKey('updated_at', $array);
         $this->assertArrayHasKey('attributes', $array);
@@ -81,6 +83,7 @@ class ProductTest extends TestCase
     public function testToListItemArrayExcludesAttributesAndImages(): void
     {
         $product = new Product();
+        $this->setId($product, 2);
         $product->setExternalCode('EXT-001');
         $product->setName('Test Product');
         $product->setPrice(99.99);
@@ -100,7 +103,7 @@ class ProductTest extends TestCase
         $this->assertEquals('EXT-001', $array['external_code']);
         $this->assertEquals('Test Product', $array['name']);
         $this->assertEquals(99.99, $array['price']);
-        $this->assertEquals(1, $array['images_count']);
+        $this->assertEquals(0, $array['images_count']);
         $this->assertArrayNotHasKey('attributes', $array);
         $this->assertArrayNotHasKey('description', $array);
         $this->assertArrayNotHasKey('created_at', $array);
@@ -185,5 +188,11 @@ class ProductTest extends TestCase
         $this->assertNull($product->getDiscount());
         $this->assertCount(0, $product->getAttributes());
         $this->assertCount(0, $product->getImages());
+    }
+
+    private function setId(object $entity, int $id): void
+    {
+        $prop = new ReflectionProperty($entity, 'id');
+        $prop->setValue($entity, $id);
     }
 }

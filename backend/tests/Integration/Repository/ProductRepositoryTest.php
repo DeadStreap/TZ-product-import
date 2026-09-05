@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Integration\Repository;
 
 use App\DTO\ProductFilter;
-use App\Entities\Product;
 use App\Tests\Integration\IntegrationTestCase;
 
 class ProductRepositoryTest extends IntegrationTestCase

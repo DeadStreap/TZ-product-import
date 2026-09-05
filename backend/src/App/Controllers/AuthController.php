@@ -10,9 +10,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 
 class AuthController
 {
-    public function __construct(private AuthService $authService)
-    {
-    }
+    public function __construct(private AuthService $authService) {}
 
     public function login(Request $request, Response $response): Response
     {

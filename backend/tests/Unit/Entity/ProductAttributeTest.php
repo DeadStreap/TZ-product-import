@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Entity;
 use App\Entities\Product;
 use App\Entities\ProductAttribute;
 use PHPUnit\Framework\TestCase;
+use ReflectionProperty;
 
 class ProductAttributeTest extends TestCase
 {
@@ -42,6 +43,7 @@ class ProductAttributeTest extends TestCase
     public function testToArray(): void
     {
         $attr = new ProductAttribute();
+        $this->setId($attr, 1);
         $attr->setKey('Material');
         $attr->setValue('Silk');
 
@@ -55,6 +57,7 @@ class ProductAttributeTest extends TestCase
     public function testToArrayWithNullValue(): void
     {
         $attr = new ProductAttribute();
+        $this->setId($attr, 2);
         $attr->setKey('Size');
         $attr->setValue(null);
 
@@ -62,5 +65,11 @@ class ProductAttributeTest extends TestCase
 
         $this->assertEquals('Size', $array['key']);
         $this->assertNull($array['value']);
+    }
+
+    private function setId(object $entity, int $id): void
+    {
+        $prop = new ReflectionProperty($entity, 'id');
+        $prop->setValue($entity, $id);
     }
 }

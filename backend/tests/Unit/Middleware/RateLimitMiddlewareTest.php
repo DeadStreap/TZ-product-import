@@ -23,11 +23,22 @@ class RateLimitMiddlewareTest extends TestCase
 
     protected function tearDown(): void
     {
-        $files = glob($this->cacheDir . '/*/*');
-        if ($files) {
-            array_map('unlink', $files);
+        $this->removeDirectory($this->cacheDir);
+    }
+
+    private function removeDirectory(string $dir): void
+    {
+        if (!is_dir($dir)) {
+            return;
         }
-        @rmdir($this->cacheDir);
+        $items = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::CHILD_FIRST,
+        );
+        foreach ($items as $item) {
+            $item->isDir() ? rmdir($item->getPathname()) : unlink($item->getPathname());
+        }
+        rmdir($dir);
     }
 
     public function testAllowsRequestUnderLimit(): void

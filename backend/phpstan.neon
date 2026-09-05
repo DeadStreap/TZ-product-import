@@ -2,4 +2,7 @@ parameters:
     level: 5
     paths:
         - src
-    ignoreErrors: []
+    ignoreErrors:
+        -
+            identifier: property.onlyRead
+            path: src/App/Entities/

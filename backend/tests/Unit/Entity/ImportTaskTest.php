@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Entity;
 use App\Entities\ImportTask;
 use App\Enums\ImportStatus;
 use PHPUnit\Framework\TestCase;
+use ReflectionProperty;
 
 class ImportTaskTest extends TestCase
 {
@@ -37,6 +38,7 @@ class ImportTaskTest extends TestCase
     public function testToArrayWithNullResult(): void
     {
         $task = new ImportTask();
+        $this->setId($task, 1);
 
         $array = $task->toArray();
 
@@ -49,6 +51,7 @@ class ImportTaskTest extends TestCase
     public function testToArrayWithJsonResult(): void
     {
         $task = new ImportTask();
+        $this->setId($task, 2);
         $task->setStatus(ImportStatus::Completed);
         $result = json_encode(['imported' => 5, 'updated' => 2, 'errors' => []]);
         $task->setResult($result);
@@ -76,5 +79,11 @@ class ImportTaskTest extends TestCase
             $task->setStatus($status);
             $this->assertEquals($status, $task->getStatus());
         }
+    }
+
+    private function setId(object $entity, int $id): void
+    {
+        $prop = new ReflectionProperty($entity, 'id');
+        $prop->setValue($entity, $id);
     }
 }

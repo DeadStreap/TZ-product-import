@@ -15,8 +15,7 @@ class ImportProductsHandler
         private ImportService $importService,
         private ImportTaskRepository $taskRepo,
         private EntityManager $em,
-    ) {
-    }
+    ) {}
 
     public function __invoke(ImportProductsMessage $message): void
     {

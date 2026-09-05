@@ -10,8 +10,7 @@ class ProductFilter
         private ?string $name = null,
         private ?float $minPrice = null,
         private ?float $maxPrice = null,
-    ) {
-    }
+    ) {}
 
     public function getName(): ?string
     {

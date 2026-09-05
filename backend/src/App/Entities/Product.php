@@ -7,6 +7,7 @@ namespace App\Entities;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+
 #[ORM\Entity]
 #[ORM\Table(name: 'products')]
 #[ORM\HasLifecycleCallbacks]
@@ -196,10 +197,10 @@ class Product
             'created_at' => $this->createdAt->format('c'),
             'updated_at' => $this->updatedAt->format('c'),
             'attributes' => $this->attributes->map(
-                fn (ProductAttribute $a): array => $a->toArray()
+                fn(ProductAttribute $a): array => $a->toArray()
             )->toArray(),
             'images' => $this->images->map(
-                fn (ProductImage $i): array => $i->toArray()
+                fn(ProductImage $i): array => $i->toArray()
             )->toArray(),
         ];
     }

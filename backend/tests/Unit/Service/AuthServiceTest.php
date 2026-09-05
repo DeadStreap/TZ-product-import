@@ -8,6 +8,7 @@ use App\Entities\User;
 use App\Repositories\UserRepository;
 use App\Services\AuthService;
 use PHPUnit\Framework\TestCase;
+use ReflectionProperty;
 
 class AuthServiceTest extends TestCase
 {
@@ -74,6 +75,8 @@ class AuthServiceTest extends TestCase
     public function testLoginReturnsTokenForValidCredentials(): void
     {
         $user = new User();
+        $prop = new ReflectionProperty($user, 'id');
+        $prop->setValue($user, 42);
         $user->setEmail('admin@example.com');
         $user->setPasswordHash(password_hash('password', PASSWORD_BCRYPT));
 

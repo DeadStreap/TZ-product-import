@@ -9,8 +9,7 @@ class ImportProductsMessage
     public function __construct(
         private int $taskId,
         private string $filePath,
-    ) {
-    }
+    ) {}
 
     public function getTaskId(): int
     {

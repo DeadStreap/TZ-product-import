@@ -6,6 +6,7 @@ namespace App\Entities;
 
 use App\Enums\ImportStatus;
 use Doctrine\ORM\Mapping as ORM;
+
 #[ORM\Entity]
 #[ORM\HasLifecycleCallbacks]
 #[ORM\Table(name: 'import_tasks')]

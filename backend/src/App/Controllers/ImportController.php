@@ -19,8 +19,7 @@ class ImportController
         private EntityManager $em,
         private ImportTaskRepository $taskRepo,
         private MessageBusInterface $messageBus,
-    ) {
-    }
+    ) {}
 
     public function import(Request $request, Response $response): Response
     {

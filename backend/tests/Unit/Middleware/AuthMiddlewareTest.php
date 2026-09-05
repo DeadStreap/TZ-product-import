@@ -113,6 +113,6 @@ class AuthMiddlewareTest extends TestCase
 
         $response = $this->middleware->process($request, $handler);
 
-        $this->assertContains('application/json', $response->getHeaderLine('Content-Type'));
+        $this->assertStringContainsString('application/json', $response->getHeaderLine('Content-Type'));
     }
 }

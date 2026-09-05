@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Entity;
 use App\Entities\Product;
 use App\Entities\ProductImage;
 use PHPUnit\Framework\TestCase;
+use ReflectionProperty;
 
 class ProductImageTest extends TestCase
 {
@@ -42,6 +43,7 @@ class ProductImageTest extends TestCase
     public function testToArray(): void
     {
         $image = new ProductImage();
+        $this->setId($image, 1);
         $image->setUrl('http://example.com/photo.jpg');
         $image->setPath('2026/09/img.jpg');
 
@@ -55,6 +57,7 @@ class ProductImageTest extends TestCase
     public function testToArrayWithNullPath(): void
     {
         $image = new ProductImage();
+        $this->setId($image, 2);
         $image->setUrl('http://example.com/photo.jpg');
         $image->setPath(null);
 
@@ -62,5 +65,11 @@ class ProductImageTest extends TestCase
 
         $this->assertEquals('http://example.com/photo.jpg', $array['url']);
         $this->assertNull($array['path']);
+    }
+
+    private function setId(object $entity, int $id): void
+    {
+        $prop = new ReflectionProperty($entity, 'id');
+        $prop->setValue($entity, $id);
     }
 }

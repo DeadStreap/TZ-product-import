@@ -57,7 +57,7 @@ class ProductRepository
             ->getQuery()
             ->getResult();
 
-        $ids = array_map(fn (Product $p) => $p->getId(), $products);
+        $ids = array_map(fn(Product $p) => $p->getId(), $products);
 
         if ($ids !== []) {
             $placeholders = implode(',', array_fill(0, count($ids), '?'));

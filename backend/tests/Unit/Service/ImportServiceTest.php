@@ -12,9 +12,9 @@ use App\Services\ImageDownloadService;
 use App\Services\ImportService;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManager;
-use PHPUnit\Framework\TestCase;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PHPUnit\Framework\TestCase;
 
 class ImportServiceTest extends TestCase
 {
@@ -161,8 +161,8 @@ class ImportServiceTest extends TestCase
     public function testTransactionRollbackOnFlushFailure(): void
     {
         $connection = $this->createMock(Connection::class);
-        $connection->method('beginTransaction')->willReturn(true);
-        $connection->method('rollBack')->willReturn(true);
+        $connection->method('beginTransaction');
+        $connection->method('rollBack');
         $connection->method('executeStatement')->willReturn(0);
 
         $em = $this->createMock(EntityManager::class);
@@ -208,9 +208,9 @@ class ImportServiceTest extends TestCase
     private function createEntityManagerMock(): EntityManager
     {
         $connection = $this->createMock(Connection::class);
-        $connection->method('beginTransaction')->willReturn(true);
-        $connection->method('commit')->willReturn(true);
-        $connection->method('rollBack')->willReturn(true);
+        $connection->method('beginTransaction');
+        $connection->method('commit');
+        $connection->method('rollBack');
 
         $em = $this->createMock(EntityManager::class);
         $em->method('getConnection')->willReturn($connection);
@@ -224,15 +224,15 @@ class ImportServiceTest extends TestCase
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
-        // Write headers
         foreach ($headers as $colIndex => $header) {
-            $sheet->setCellValueByColumnAndRow($colIndex + 1, 1, $header);
+            $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex + 1);
+            $sheet->setCellValue($col . '1', $header);
         }
 
-        // Write data rows
         foreach ($dataRows as $rowIndex => $row) {
             foreach ($row as $colIndex => $value) {
-                $sheet->setCellValueByColumnAndRow($colIndex + 1, $rowIndex + 2, $value);
+                $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex + 1);
+                $sheet->setCellValue($col . ($rowIndex + 2), $value);
             }
         }
 

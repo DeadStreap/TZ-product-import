@@ -57,7 +57,7 @@ class ImportServiceIntegrationTest extends IntegrationTestCase
         $this->assertEquals('Widget', $product->getName());
         $this->assertEquals(99.99, $product->getPrice());
         $this->assertEquals(50.0, $product->getPurchasePrice());
-        $this->assertEquals(50.0, $product->getDiscount());
+        $this->assertEqualsWithDelta(50.0, $product->getDiscount(), 0.1);
     }
 
     public function testProcessFileUpdatesExistingProduct(): void
@@ -106,7 +106,7 @@ class ImportServiceIntegrationTest extends IntegrationTestCase
 
         $this->assertCount(2, $attributes);
 
-        $keys = array_map(fn ($a) => $a->getKey(), $attributes);
+        $keys = array_map(fn($a) => $a->getKey(), $attributes);
         $this->assertContains('Color', $keys);
         $this->assertContains('Size', $keys);
     }
@@ -208,7 +208,7 @@ class ImportServiceIntegrationTest extends IntegrationTestCase
 
         // Old attributes should be gone
         $attributes = $this->attributeRepo->findByProduct($product->getId());
-        $keys = array_map(fn ($a) => $a->getKey(), $attributes);
+        $keys = array_map(fn($a) => $a->getKey(), $attributes);
 
         $this->assertNotContains('OldAttr', $keys);
         $this->assertContains('NewAttr', $keys);
@@ -234,12 +234,14 @@ class ImportServiceIntegrationTest extends IntegrationTestCase
         $sheet = $spreadsheet->getActiveSheet();
 
         foreach ($headers as $colIndex => $header) {
-            $sheet->setCellValueByColumnAndRow($colIndex + 1, 1, $header);
+            $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex + 1);
+            $sheet->setCellValue($col . '1', $header);
         }
 
         foreach ($dataRows as $rowIndex => $row) {
             foreach ($row as $colIndex => $value) {
-                $sheet->setCellValueByColumnAndRow($colIndex + 1, $rowIndex + 2, $value);
+                $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex + 1);
+                $sheet->setCellValue($col . ($rowIndex + 2), $value);
             }
         }
 

@@ -12,9 +12,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 class AuthMiddleware implements MiddlewareInterface
 {
-    public function __construct(private AuthService $authService)
-    {
-    }
+    public function __construct(private AuthService $authService) {}
 
     public function process(Request $request, RequestHandlerInterface $handler): Response
     {

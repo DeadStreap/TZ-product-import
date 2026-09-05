@@ -14,8 +14,7 @@ class AuthService
         private string $secret,
         private int $expiry,
         private UserRepository $userRepo,
-    ) {
-    }
+    ) {}
 
     public function generateToken(int $userId, string $email): string
     {
